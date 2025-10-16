@@ -979,6 +979,18 @@
 				<i class="fas fa-edit"></i>
 				Inscripción asistentes
 			</a>
+			<a class="btn" href="index.html" rel="noopener">
+				<i class="fas fa-home"></i>
+				Volver al inicio
+			</a>
+			<a class="btn" href="programa.html" rel="noopener">
+				<i class="fas fa-calendar-check"></i>
+				Programa
+			</a>
+			<!-- <a class="btn" href="inspiratalks.html" rel="noopener">
+				<i class="fas fa-microphone"></i>
+				Inspira Talks
+			</a> -->
 		</div>
 		
 		<!-- Temas del Foro -->
@@ -987,28 +999,28 @@
 			<p>Filtra los talleres e Inspira Talks por temática para encontrar los que más te interesen:</p>
 			
 			<div class="themes-grid">
-				<div class="theme-card metodologias" data-theme="metodologias" onclick="filterWorkshops('metodologias')">
+				<div class="theme-card metodologias" data-theme="metodologias" onclick="filterWorkshops('metodologias')" id="metodologias">
 					<div class="theme-icon">
 						<i class="fas fa-graduation-cap"></i>
 					</div>
 					<h4>Metodologías Innovadoras</h4>
 				</div>
 				
-				<div class="theme-card ia" data-theme="ia" onclick="filterWorkshops('ia')">
+				<div class="theme-card ia" data-theme="ia" onclick="filterWorkshops('ia')" id="ia">
 					<div class="theme-icon">
 						<i class="fas fa-brain"></i>
 					</div>
 					<h4>Inteligencia Artificial</h4>
 				</div>
 				
-				<div class="theme-card valores" data-theme="valores" onclick="filterWorkshops('valores')">
+				<div class="theme-card valores" data-theme="valores" onclick="filterWorkshops('valores')" id="valores">
 					<div class="theme-icon">
 						<i class="fas fa-shield-alt"></i>
 					</div>
 					<h4>Valores en la Era Digital</h4>
 				</div>
 				
-				<div class="theme-card bienestar" data-theme="bienestar" onclick="filterWorkshops('bienestar')">
+				<div class="theme-card bienestar" data-theme="bienestar" onclick="filterWorkshops('bienestar')" id="bienestar">
 					<div class="theme-icon">
 						<i class="fas fa-heart"></i>
 					</div>
@@ -1282,6 +1294,18 @@
 	  
 	  // Efectos interactivos adicionales
 	  document.addEventListener('DOMContentLoaded', function() {
+		// Manejar navegación por anclas
+		const urlHash = window.location.hash;
+		if (urlHash) {
+		  const theme = urlHash.substring(1); // Remover el #
+		  if (['metodologias', 'ia', 'valores', 'bienestar'].includes(theme)) {
+			setTimeout(() => {
+			  filterWorkshops(theme);
+			  document.getElementById(theme)?.scrollIntoView({ behavior: 'smooth' });
+			}, 100);
+		  }
+		}
+		
 		// Animación de entrada para elementos al hacer scroll
 		const observerOptions = {
 		  threshold: 0.1,
