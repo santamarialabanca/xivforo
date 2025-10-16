@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Inspira Talks - HUMANIA XIV Foro de Innovación Educativa</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+	<style>
+	  /* Font Awesome Icons */
+	  .fa { display: inline-block; width: 1em; height: 1em; }
+	</style>
+	<style>
+	  :root{
+		--granate:#801836;
+		--gris:#666666;
+		--bg:#fff;
+		--suave:#f7f5f6;
+		--accent:#ffd700;
+		--gradient: linear-gradient(135deg, var(--granate) 0%, #6a1430 100%);
+		--glass: rgba(255,255,255,0.1);
+		--shadow: 0 8px 32px rgba(128,24,54,0.1);
+		--border-radius: 16px;
+		--transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	  }
+	  *{box-sizing:border-box}
+	  body{
+		margin:0;
+		padding:0;
+		font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;
+		color:#1a1a1a;
+		background:var(--bg);
+		line-height:1.6;
+		overflow-x:hidden;
+	  }
+	  
+	  /* Efectos de fondo dinámico */
+	  body::before {
+		content: '';
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: 
+		  radial-gradient(circle at 20% 80%, rgba(128,24,54,0.03) 0%, transparent 50%),
+		  radial-gradient(circle at 80% 20%, rgba(128,24,54,0.03) 0%, transparent 50%);
+		pointer-events: none;
+		z-index: -1;
+	  }
+	  
+	  /* Header Styles */
+	  .header-banner {
+		background: linear-gradient(135deg, var(--granate) 0%, #6a1430 100%);
+		color: white;
+		padding: 40px 0;
+		position: relative;
+		overflow: hidden;
+		margin-bottom: 40px;
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	  }
+	  
+	  .header-banner::before {
+		content: '';
+		position: absolute;
+		top: -50px;
+		left: -50px;
+		width: 100px;
+		height: 100px;
+		background: rgba(255,255,255,0.1);
+		border-radius: 50%;
+		transform: rotate(45deg);
+	  }
+	  
+	  .header-banner::after {
+		content: '';
+		position: absolute;
+		bottom: -30px;
+		right: -30px;
+		width: 60px;
+		height: 60px;
+		background: rgba(255,255,255,0.1);
+		border-radius: 50%;
+		transform: rotate(45deg);
+	  }
+	  
+	  .header-content {
+		max-width: 1100px;
+		margin: 0 auto;
+		padding: 0 20px;
+		position: relative;
+		z-index: 2;
+		text-align: center;
+	  }
+	  
+	  .header-content h1 {
+		font-size: clamp(1.8rem, 4vw, 2.6rem);
+		font-weight: 900;
+		margin: 0 0 10px 0;
+		background: linear-gradient(135deg, #ffffff 0%, #ffd700 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	  }
+	  
+	  .header-content .subtitle {
+		font-size: clamp(1rem, 2.5vw, 1.2rem);
+		opacity: 0.9;
+		margin: 0;
+	  }
+	  
+	  .s-wrap{
+		max-width:1100px;
+		margin:0 auto;
+		padding:20px;
+		position:relative;
+	  }
+	  
+	  /* Título principal con efecto de gradiente */
+	  h1{
+		margin:.35em 0 .2em;
+		font-size:clamp(1.8rem,4vw,2.6rem);
+		line-height:1.12;
+		font-weight:900;
+		background:var(--gradient);
+		-webkit-background-clip:text;
+		-webkit-text-fill-color:transparent;
+		background-clip:text;
+		position:relative;
+	  }
+	  
+	  h1::after {
+		content: '';
+		position: absolute;
+		bottom: -8px;
+		left: 0;
+		width: 60px;
+		height: 3px;
+		background: var(--gradient);
+		border-radius: 2px;
+	  }
+	  
+	  .lead{
+		color:var(--gris);
+		font-size:clamp(1rem,2.5vw,1.06rem);
+		line-height:1.6;
+		margin-bottom:1.5rem;
+		position:relative;
+		padding-left:20px;
+	  }
+	  
+	  .lead::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 4px;
+		height: 100%;
+		background: var(--gradient);
+		border-radius: 2px;
+	  }
+	  
+	  /* Box mejorado */
+	  .box{
+		background:rgba(255,255,255,0.8);
+		backdrop-filter:blur(15px);
+		border:1px solid rgba(128,24,54,0.1);
+		border-radius:var(--border-radius);
+		padding:28px;
+		margin:20px 0;
+		transition:var(--transition);
+		position:relative;
+		overflow:hidden;
+	  }
+	  
+	  .box::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 4px;
+		background: var(--gradient);
+		transform: scaleX(0);
+		transition: transform 0.3s;
+	  }
+	  
+	  .box:hover::before {
+		transform: scaleX(1);
+	  }
+	  
+	  .box:hover{
+		transform:translateY(-4px);
+		box-shadow:var(--shadow);
+		background:rgba(255,255,255,0.95);
+		border-color:rgba(128,24,54,0.2);
+	  }
+	  
+	  .box h3{
+		margin:0 0 16px 0;
+		font-size:1.3rem;
+		font-weight:700;
+		color:var(--granate);
+		position:relative;
+		z-index:1;
+	  }
+	  
+	  .box h4{
+		margin:0 0 12px 0;
+		font-size:1.1rem;
+		font-weight:700;
+		color:var(--granate);
+		position:relative;
+		z-index:1;
+	  }
+	  
+	  .box p{
+		margin:0 0 16px 0;
+		color:var(--gris);
+		font-size:0.95rem;
+		line-height:1.6;
+		position:relative;
+		z-index:1;
+	  }
+	  
+	  .box ul{
+		margin:0 0 16px 0;
+		padding-left:20px;
+		position:relative;
+		z-index:1;
+	  }
+	  
+	  .box li{
+		margin:0 0 8px 0;
+		color:var(--gris);
+		font-size:0.95rem;
+		line-height:1.5;
+	  }
+	  
+	  /* Grid mejorado */
+	  .grid{
+		display:grid;
+		gap:24px;
+		grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+		margin:20px 0;
+	  }
+	  
+	  /* Botones mejorados */
+	  .btn{
+		display:inline-flex;
+		align-items:center;
+		gap:10px;
+		padding:14px 20px;
+		border-radius:var(--border-radius);
+		border:2px solid var(--granate);
+		color:var(--granate);
+		font-weight:800;
+		text-decoration:none;
+		transition:var(--transition);
+		font-size:0.9rem;
+		position:relative;
+		overflow:hidden;
+		background:rgba(255,255,255,0.9);
+		backdrop-filter:blur(10px);
+	  }
+	  
+	  .btn::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 100%;
+		height: 100%;
+		background: var(--gradient);
+		transition: left 0.3s;
+		z-index: -1;
+	  }
+	  
+	  .btn:hover::before {
+		left: 0;
+	  }
+	  
+	  .btn:hover{
+		color:white;
+		transform:translateY(-3px);
+		box-shadow:var(--shadow);
+		border-color:transparent;
+	  }
+	  
+	  .btn.primary{
+		background:var(--gradient);
+		color:#fff;
+		border-color:transparent;
+	  }
+	  
+	  .btn.primary:hover{
+		transform:translateY(-3px) scale(1.02);
+	  }
+	  
+	  /* Tags mejorados */
+	  .tag{
+		display:inline-block;
+		border:1.5px solid var(--granate);
+		color:var(--granate);
+		padding:10px 16px;
+		border-radius:var(--border-radius);
+		font-weight:700;
+		margin:6px 8px 6px 0;
+		position:relative;
+		overflow:hidden;
+		transition:var(--transition);
+		background:rgba(255,255,255,0.8);
+		backdrop-filter:blur(5px);
+	  }
+	  
+	  .tag:hover{
+		background:var(--granate);
+		color:white;
+		transform:translateY(-2px);
+		box-shadow:var(--shadow);
+	  }
+	  
+	  .muted{
+		color:var(--gris);
+		font-size:0.95rem;
+		line-height:1.5;
+	  }
+	  
+	  .sep{
+		height:2px;
+		background:linear-gradient(90deg,transparent,rgba(128,24,54,0.2),transparent);
+		margin:40px 0;
+		border-radius:1px;
+	  }
+	  
+	  /* Efectos de scroll y animaciones sutiles */
+	  @keyframes fadeInUp {
+		from {
+		  opacity: 0;
+		  transform: translateY(30px);
+		}
+		to {
+		  opacity: 1;
+		  transform: translateY(0);
+		}
+	  }
+	  
+	  /* Animaciones de entrada */
+	  h1 {
+		animation: fadeInUp 0.8s ease-out;
+	  }
+	  
+	  .lead {
+		animation: fadeInUp 0.8s ease-out 0.2s both;
+	  }
+	  
+	  .box {
+		animation: fadeInUp 0.6s ease-out;
+		animation-fill-mode: both;
+	  }
+	  
+	  .box:nth-child(1) { animation-delay: 0.1s; }
+	  .box:nth-child(2) { animation-delay: 0.2s; }
+	  .box:nth-child(3) { animation-delay: 0.3s; }
+	  
+	  .tag {
+		animation: fadeInUp 0.6s ease-out;
+		animation-fill-mode: both;
+	  }
+	  
+	  .tag:nth-child(1) { animation-delay: 0.1s; }
+	  .tag:nth-child(2) { animation-delay: 0.2s; }
+	  .tag:nth-child(3) { animation-delay: 0.3s; }
+	  .tag:nth-child(4) { animation-delay: 0.4s; }
+	  
+	  /* Mejoras de accesibilidad */
+	  @media (prefers-reduced-motion: reduce) {
+		*, *::before, *::after {
+		  animation-duration: 0.01ms !important;
+		  animation-iteration-count: 1 !important;
+		  transition-duration: 0.01ms !important;
+		}
+	  }
+	  
+	  /* Focus visible para accesibilidad */
+	  .btn:focus-visible,
+	  .tag:focus-visible,
+	  a:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+		border-radius: var(--border-radius);
+	  }
+	  
+	  /* Responsive Design */
+	  @media(max-width:768px){
+		.s-wrap{padding:16px}
+		.grid{grid-template-columns:1fr;gap:16px}
+		.box{padding:20px}
+		
+		.btn {
+		  padding: 12px 16px;
+		  font-size: 0.85rem;
+		}
+		
+		.tag {
+		  padding: 8px 12px;
+		  font-size: 0.8rem;
+		}
+	  }
+	  
+	  @media(max-width:480px){
+		.s-wrap{padding:12px}
+		.box{padding:16px}
+		.btn{padding:10px 14px;font-size:0.8rem}
+		.tag{padding:6px 10px;font-size:0.75rem}
+		
+		/* Desactivar animaciones en pantallas muy pequeñas */
+		h1,
+		.lead,
+		.box,
+		.tag {
+		  animation: none;
+		}
+	  }
+	</style>
+</head>
+<body>
+	<!-- Header Banner -->
+	<header class="header-banner">
+		<div class="header-content">
+			<h1>Inspira Talks</h1>
+			<p class="subtitle">Ideas que impulsan · Microcharlas de 15 minutos</p>
+		</div>
+	</header>
+	
+	<section class="s-wrap">
+	<h1>Inspira Talks · Ideas que impulsan</h1>
+	<p class="lead">
+	  Microcharlas de <b>15 minutos</b> para compartir una idea práctica, un hallazgo o un cambio de mirada que esté
+	  funcionando en tu aula o centro. Formato directo, un mensaje clave y una llamada a la acción.
+	</p>
+  
+	<div class="box">
+	  <h3>Convocatoria abierta</h3>
+	  <p class="muted">Envíanos tu propuesta para una o varias Inspira Talks. También puedes proponer un <b>microtaller</b> práctico.</p>
+			<div class="grid" style="margin-top:16px">
+				<a class="btn primary" href="#" target="_blank" rel="noopener">
+					<i class="fas fa-microphone"></i>
+					Enviar Inspira Talk
+				</a>
+				<a class="btn" href="#" target="_blank" rel="noopener">
+					<i class="fas fa-puzzle-piece"></i>
+					Proponer microtaller
+				</a>
+	  </div>
+			<p class="muted" style="margin-top:16px"><b>Límite de envío:</b> 9–10 de octubre (según convocatoria). La organización contactará a las propuestas seleccionadas.</p>
+	</div>
+  
+	<div class="sep"></div>
+  
+	<h3>Temáticas</h3>
+	<span class="tag">Inteligencia artificial</span>
+	<span class="tag">Bienestar emocional</span>
+	<span class="tag">Metodologías innovadoras</span>
+	<span class="tag">Valores en la era digital</span>
+  
+	<div class="sep"></div>
+  
+	<div class="grid">
+	  <div class="box">
+		<h4>Guía para tu propuesta</h4>
+		<ul class="muted">
+		  <li>Título claro (máx. 70 caracteres)</li>
+		  <li>Mensaje clave en 1 frase</li>
+		  <li>3 ideas-acción para replicar</li>
+		  <li>Material de apoyo opcional (1 slide, demo, enlace)</li>
+		</ul>
+	  </div>
+	  <div class="box">
+		<h4>Qué valoramos</h4>
+		<ul class="muted">
+		  <li>Aplicabilidad inmediata</li>
+		  <li>Impacto en aula/centro</li>
+		  <li>Inclusión y accesibilidad</li>
+		  <li>Ajuste a los ejes de HUMANIA</li>
+		</ul>
+	  </div>
+	</div>
+  </section>
+</body>
+</html>
