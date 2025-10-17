@@ -398,6 +398,13 @@
 		transition:var(--transition);
 		position:relative;
 		overflow:hidden;
+		text-decoration: none;
+		color: inherit;
+		cursor: pointer;
+	  }
+	  
+	  .kpi.interactive {
+		cursor: pointer;
 	  }
 	  
 	  .kpi::before {
@@ -420,6 +427,8 @@
 		transform:translateY(-5px);
 		box-shadow:var(--shadow);
 		background:rgba(255,255,255,0.15);
+		text-decoration: none;
+		color: inherit;
 	  }
 	  
 	  .kpi b{
@@ -440,6 +449,20 @@
 	  .kpi:hover i {
 		transform: scale(1.1);
 		color: var(--accent);
+	  }
+	  
+	  .kpi-hint {
+		display: block;
+		font-size: 0.75rem;
+		color: var(--gris);
+		margin-top: 8px;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+		font-style: italic;
+	  }
+	  
+	  .kpi:hover .kpi-hint {
+		opacity: 1;
 	  }
 	  
 	  /* Cards mejoradas */
@@ -530,45 +553,67 @@
 		border-radius:1px;
 	  }
 	  
-	  /* Sección de temas del foro */
+	  /* Sección de temas del foro - Estética de la imagen */
 	  .forum-topics {
 		margin: 40px 0;
 		text-align: center;
+		background: rgba(255,255,255,0.8);
+		backdrop-filter: blur(15px);
+		border: 1px solid rgba(128,24,54,0.1);
+		border-radius: var(--border-radius);
+		padding: 32px;
+		position: relative;
+		overflow: hidden;
+	  }
+	  
+	  .forum-topics::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 4px;
+		background: var(--gradient);
 	  }
 	  
 	  .topics-title {
 		font-size: clamp(1.4rem, 3vw, 1.8rem);
 		font-weight: 800;
 		color: var(--granate);
-		margin-bottom: 30px;
+		margin-bottom: 20px;
 		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
 	  }
 	  
-	  .topics-title::after {
+	  .topics-title::before {
 		content: '';
-		position: absolute;
-		bottom: -10px;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 80px;
-		height: 3px;
+		width: 4px;
+		height: 24px;
 		background: var(--gradient);
 		border-radius: 2px;
+	  }
+	  
+	  .topics-subtitle {
+		font-size: 0.95rem;
+		color: var(--gris);
+		margin-bottom: 30px;
+		line-height: 1.5;
 	  }
 	  
 	  .topics-grid {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: 20px;
-		margin-top: 40px;
+		margin-top: 30px;
 	  }
 	  
 	  .topic-card {
-		background: rgba(255,255,255,0.8);
-		backdrop-filter: blur(15px);
-		border: 1px solid rgba(128,24,54,0.1);
+		background: rgba(255,255,255,0.9);
 		border-radius: var(--border-radius);
-		padding: 30px 20px;
+		padding: 24px 20px;
 		text-decoration: none;
 		color: inherit;
 		transition: var(--transition);
@@ -578,49 +623,69 @@
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		min-height: 200px;
+		min-height: 180px;
+		cursor: pointer;
 	  }
 	  
-	  .topic-card::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 4px;
-		background: var(--gradient);
-		transform: scaleX(0);
-		transition: transform 0.3s;
+	  /* Colores específicos para cada tema según la imagen */
+	  .topic-card.metodologias {
+		border: 2px solid #ffd700;
 	  }
 	  
-	  .topic-card:hover::before {
-		transform: scaleX(1);
+	  .topic-card.ia {
+		border: 2px solid #ff8c00;
+	  }
+	  
+	  .topic-card.valores {
+		border: 2px solid var(--granate);
+	  }
+	  
+	  .topic-card.bienestar {
+		border: 2px solid #20b2aa;
 	  }
 	  
 	  .topic-card:hover {
-		transform: translateY(-8px);
+		transform: translateY(-6px);
 		box-shadow: var(--shadow);
 		background: rgba(255,255,255,0.95);
-		border-color: rgba(128,24,54,0.2);
 	  }
 	  
 	  .topic-icon {
 		width: 60px;
 		height: 60px;
-		background: var(--gradient);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-bottom: 20px;
+		margin-bottom: 16px;
 		transition: var(--transition);
 		position: relative;
 		z-index: 1;
 	  }
 	  
+	  /* Iconos con colores específicos según la imagen */
+	  .topic-card.metodologias .topic-icon {
+		background: #ffd700;
+		color: #333;
+	  }
+	  
+	  .topic-card.ia .topic-icon {
+		background: #ff8c00;
+		color: white;
+	  }
+	  
+	  .topic-card.valores .topic-icon {
+		background: var(--granate);
+		color: white;
+	  }
+	  
+	  .topic-card.bienestar .topic-icon {
+		background: #20b2aa;
+		color: white;
+	  }
+	  
 	  .topic-icon i {
 		font-size: 1.5rem;
-		color: white;
 		transition: var(--transition);
 	  }
 	  
@@ -634,19 +699,20 @@
 	  }
 	  
 	  .topic-card h3 {
-		font-size: 1.1rem;
+		font-size: 1rem;
 		font-weight: 700;
 		color: var(--granate);
-		margin: 0 0 12px 0;
+		margin: 0;
 		position: relative;
 		z-index: 1;
+		line-height: 1.3;
 	  }
 	  
 	  .topic-card p {
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 		color: var(--gris);
-		line-height: 1.5;
-		margin: 0;
+		line-height: 1.4;
+		margin: 8px 0 0 0;
 		position: relative;
 		z-index: 1;
 	  }
@@ -818,6 +884,10 @@
 		.tag{text-align:center;display:block;margin-bottom:16px}
 		
 		/* Temas del foro en móvil */
+		.forum-topics {
+		  padding: 24px;
+		}
+		
 		.topics-grid {
 		  grid-template-columns: 1fr 1fr;
 		  gap: 12px;
@@ -841,10 +911,6 @@
 		  font-size: 0.9rem;
 		}
 		
-		.topic-card p {
-		  font-size: 0.75rem;
-		}
-		
 		/* Reducir efectos en móvil */
 		.card:hover,
 		.kpi:hover,
@@ -866,6 +932,10 @@
 		.btn{font-size:0.85rem;padding:12px 14px}
 		
 		/* Temas del foro en pantallas pequeñas */
+		.forum-topics {
+		  padding: 20px;
+		}
+		
 		.topics-grid {
 		  grid-template-columns: 1fr 1fr;
 		  gap: 8px;
@@ -887,10 +957,6 @@
 		
 		.topic-card h3 {
 		  font-size: 0.8rem;
-		}
-		
-		.topic-card p {
-		  font-size: 0.7rem;
 		}
 		
 		/* Desactivar animaciones en pantallas muy pequeñas */
@@ -929,58 +995,59 @@
 	</p>
   
 	<div class="kpis" role="list">
-	  <div class="kpi" role="listitem">
+	  <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=XIV%20Foro%20de%20Innovación%20Educativa%20HUMANIA&dates=20251105T170000Z/20251105T200000Z&details=Encuentro%20abierto%20para%20docentes%2C%20investigadores%20y%20familias.%20Exploramos%20IA%2C%20bienestar%20emocional%2C%20metodologías%20innovadoras%20y%20valores%20en%20la%20era%20digital.&location=Colegio%20Santa%20María%20la%20Blanca%2C%20C.%20del%20Monasterio%20de%20Oseira%2C%2017B%2C%20Fuencarral-El%20Pardo%2C%20Madrid" target="_blank" rel="noopener" class="kpi interactive">
 		<i class="fas fa-calendar-alt"></i>
 		<b>5 · noviembre · 2025</b> Miércoles
-	  </div>
-	  <div class="kpi" role="listitem">
+		<span class="kpi-hint">Haz clic para añadir al calendario</span>
+	  </a>
+	  <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=XIV%20Foro%20de%20Innovación%20Educativa%20HUMANIA&dates=20251105T170000Z/20251105T200000Z&details=Encuentro%20abierto%20para%20docentes%2C%20investigadores%20y%20familias.%20Exploramos%20IA%2C%20bienestar%20emocional%2C%20metodologías%20innovadoras%20y%20valores%20en%20la%20era%20digital.&location=Colegio%20Santa%20María%20la%20Blanca%2C%20C.%20del%20Monasterio%20de%20Oseira%2C%2017B%2C%20Fuencarral-El%20Pardo%2C%20Madrid" target="_blank" rel="noopener" class="kpi interactive">
 		<i class="fas fa-clock"></i>
 		<b>17:00–20:00</b> (ES)
-	  </div>
-	  <div class="kpi" role="listitem">
+		<span class="kpi-hint">Haz clic para añadir al calendario</span>
+	  </a>
+	  <a href="https://maps.google.com/maps?q=Colegio+Santa+María+la+Blanca,+C.+del+Monasterio+de+Oseira,+17B,+Fuencarral-El+Pardo,+Madrid" target="_blank" rel="noopener" class="kpi interactive">
 		<i class="fas fa-map-marker-alt"></i>
 		<b>Santa María la Blanca</b> Madrid
-	  </div>
-	  <div class="kpi" role="listitem">
+		<span class="kpi-hint">Haz clic para ver en Google Maps</span>
+	  </a>
+	  <a href="https://forms.gle/L2FSdfhcUFnbJjPx8" target="_blank" rel="noopener" class="kpi interactive">
 		<i class="fas fa-ticket-alt"></i>
 		<b>Inscripción</b> gratuita (aforo limitado)
-	  </div>
+		<span class="kpi-hint">Haz clic para inscribirte</span>
+	  </a>
 	</div>
   
 	<!-- Navegación por temas del foro -->
 	<div class="forum-topics">
-	  <h2 class="topics-title">Temas del foro</h2>
+	  <h2 class="topics-title"><i class="fas fa-lightbulb"></i> Temas del foro</h2>
+	  <p class="topics-subtitle">Filtra los talleres e Inspira Talks por temática para encontrar los que más te interesen:</p>
 	  <div class="topics-grid">
-		<a href="talleres.html#ia" class="topic-card">
+		<a href="talleres.html#metodologias" class="topic-card metodologias">
+		  <div class="topic-icon">
+			<i class="fas fa-graduation-cap"></i>
+		  </div>
+		  <h3>Metodologías Innovadoras</h3>
+		</a>
+		
+		<a href="talleres.html#ia" class="topic-card ia">
 		  <div class="topic-icon">
 			<i class="fas fa-brain"></i>
 		  </div>
 		  <h3>Inteligencia Artificial</h3>
-		  <p>Explorando el futuro de la educación con IA</p>
 		</a>
 		
-		<a href="talleres.html#bienestar" class="topic-card">
-		  <div class="topic-icon">
-			<i class="fas fa-heart"></i>
-		  </div>
-		  <h3>Bienestar Emocional</h3>
-		  <p>Cuidando la salud mental en el aula</p>
-		</a>
-		
-		<a href="talleres.html#metodologias" class="topic-card">
-		  <div class="topic-icon">
-			<i class="fas fa-lightbulb"></i>
-		  </div>
-		  <h3>Metodologías Innovadoras</h3>
-		  <p>Nuevas formas de enseñar y aprender</p>
-		</a>
-		
-		<a href="talleres.html#valores" class="topic-card">
+		<a href="talleres.html#valores" class="topic-card valores">
 		  <div class="topic-icon">
 			<i class="fas fa-shield-alt"></i>
 		  </div>
 		  <h3>Valores en la Era Digital</h3>
-		  <p>Ética y valores en la transformación digital</p>
+		</a>
+		
+		<a href="talleres.html#bienestar" class="topic-card bienestar">
+		  <div class="topic-icon">
+			<i class="fas fa-heart"></i>
+		  </div>
+		  <h3>Bienestar Emocional</h3>
 		</a>
 	  </div>
 	</div>
