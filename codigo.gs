@@ -19,7 +19,7 @@ const WORKSHOP_NAMES = {
   },
   "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca": { 
     name: "AyudIA! – La Inteligencia Artificial como compañera", 
-    capacity: 25
+    capacity: 26
   },
   "5. Innovación social: crea, actúa y cambia el mundo Luis Miguel Olivas Fundación Iruaritz Lezama": { 
     name: "Innovación social: crea, actúa y cambia el mundo", 
@@ -31,7 +31,7 @@ const WORKSHOP_NAMES = {
   },
   "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer": { 
     name: "Claves para cultivar tu salud", 
-    capacity: 25 
+    capacity: 31 
   },
   "8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense": { 
     name: "Metacognición. Una necesidad", 
@@ -69,7 +69,7 @@ const WORKSHOP_NAMES = {
   },
   "16. Palabras que construyen: herramientas para transformar el conflicto en conexión con los adolescentes Ana López e Iranzu Arellano Santa María la Blanca": { 
     name: "Palabras que construyen: herramientas para transformar el conflicto", 
-    capacity: 12 
+    capacity: 25 
   },
   "17. Inspira Talks: Humanizar la educación A) Transformación Digital e Innovación Educativa | IA Aplicada a la Educación Antonio Segura Marrero UNIR B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": { 
     name: "Humanizar la educación", 
@@ -80,46 +80,6 @@ const WORKSHOP_NAMES = {
     capacity: 25 
   }
 };
-
-const NO_SELECTION = "No seleccionado";
-const STATUS_CONFIRMED = "Confirmado";
-const STATUS_WAITLIST = "Lista de Espera";
-const WORKSHOP_STATUS_REGEX = /\s*\((?:\d+\/\d+\splazas disponibles|\d+\splazas disponibles|COMPLETO(?:\s*-\s*NO DISPONIBLE)?)\)/gi;
-
-function normalizeWorkshopSelection(value) {
-  const text = value !== undefined && value !== null ? String(value).trim() : "";
-  return text ? text : NO_SELECTION;
-}
-
-function cleanWorkshopValue(value) {
-  if (value === undefined || value === null) {
-    return "";
-  }
-  return String(value)
-    .replace(/^[✅❌]\s*/, "")
-    .replace(WORKSHOP_STATUS_REGEX, "")
-    .replace(/\s*-\s*NO DISPONIBLE/gi, "")
-    .replace(/\s*\.\s*$/g, "")
-    .trim();
-}
-
-function resolveWorkshopKey(value) {
-  const cleaned = cleanWorkshopValue(value);
-  return WORKSHOP_NAMES[cleaned] ? cleaned : "";
-}
-
-function isWorkshopSelected(value) {
-  const cleaned = cleanWorkshopValue(value);
-  return !!cleaned && cleaned !== NO_SELECTION;
-}
-
-function getWorkshopDisplayName(value) {
-  const cleaned = cleanWorkshopValue(value);
-  if (!cleaned || cleaned === NO_SELECTION) {
-    return NO_SELECTION;
-  }
-  return WORKSHOP_NAMES[cleaned] ? WORKSHOP_NAMES[cleaned].name : cleaned;
-}
 
 // Función principal que se ejecuta al enviar el formulario
 function onFormSubmit(e) {
@@ -141,20 +101,15 @@ function onFormSubmit(e) {
     
     console.log("📝 Datos procesados:", {email, nombre, apellidos, meInscriboComo, taller1, taller2});
     
-    // Procesar talleres primero (usar valores por defecto si están vacíos)
-    const taller1Final = normalizeWorkshopSelection(taller1);
-    const taller2Final = normalizeWorkshopSelection(taller2);
-    console.log("📝 Talleres procesados:", {taller1Final, taller2Final});
-    
-    // Verificar que tenemos los datos básicos necesarios (los talleres son opcionales)
+    // Verificar datos básicos obligatorios
     if (!email || !nombre || !apellidos) {
-      console.error("❌ Faltan datos obligatorios");
-      MailApp.sendEmail(ADMIN_EMAIL, "❌ Error: Datos incompletos", `Faltan datos obligatorios en la inscripción. Email: ${email}, Nombre: ${nombre}, Apellidos: ${apellidos}, Taller1: ${taller1Final}, Taller2: ${taller2Final}`);
+      console.error("❌ Faltan datos básicos obligatorios");
+      MailApp.sendEmail(ADMIN_EMAIL, "❌ Error: Datos básicos incompletos", `Faltan datos básicos obligatorios en la inscripción. Email: ${email}, Nombre: ${nombre}, Apellidos: ${apellidos}`);
       return;
     }
     
     // Verificar que al menos un taller esté seleccionado
-    if (taller1Final === NO_SELECTION && taller2Final === NO_SELECTION) {
+    if (!taller1 && !taller2) {
       console.error("❌ No se ha seleccionado ningún taller");
       MailApp.sendEmail(ADMIN_EMAIL, "❌ Error: Sin talleres seleccionados", `El usuario no ha seleccionado ningún taller. Email: ${email}, Nombre: ${nombre}, Apellidos: ${apellidos}`);
       return;
@@ -164,27 +119,28 @@ function onFormSubmit(e) {
     const availability = checkWorkshopAvailability();
     console.log("📊 Disponibilidad actual:", availability);
     
-    // Verificar si se puede confirmar la inscripción (manejar cualquier combinación)
-    let canConfirm;
+    // Verificar si se puede confirmar la inscripción
+    let canConfirm = false;
     
-    if (taller1Final !== NO_SELECTION && taller2Final !== NO_SELECTION) {
-      // Si hay dos talleres, verificar ambos
-      canConfirm = checkAvailability(taller1Final, taller2Final, availability);
-    } else if (taller1Final !== NO_SELECTION) {
-      // Si solo hay taller1, verificar solo el primero
-      canConfirm = checkSingleWorkshopAvailability(taller1Final, availability);
-    } else if (taller2Final !== NO_SELECTION) {
-      // Si solo hay taller2, verificar solo el segundo
-      canConfirm = checkSingleWorkshopAvailability(taller2Final, availability);
+    if (taller1 && taller2) {
+      // Ambos talleres seleccionados
+      canConfirm = checkAvailability(taller1, taller2, availability);
+    } else if (taller1) {
+      // Solo taller 1 seleccionado
+      canConfirm = checkSingleWorkshopAvailability(taller1, availability);
+    } else if (taller2) {
+      // Solo taller 2 seleccionado
+      canConfirm = checkSingleWorkshopAvailability(taller2, availability);
     }
+    
     console.log("✅ ¿Se puede confirmar?", canConfirm);
     
     if (canConfirm) {
       // Confirmar inscripción
-      confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1Final, taller2Final);
+      confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, taller2);
     } else {
       // Añadir a lista de espera
-      addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1Final, taller2Final);
+      addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller2);
     }
     
     // Actualizar las opciones del formulario con las plazas restantes
@@ -196,7 +152,7 @@ function onFormSubmit(e) {
   }
 }
 
-// Función para limpiar las opciones del formulario (eliminar texto de disponibilidad y emojis)
+// Función para limpiar las opciones del formulario (eliminar texto de disponibilidad)
 function cleanFormOptions() {
   try {
     console.log("🧹 Limpiando opciones del formulario...");
@@ -222,25 +178,18 @@ function cleanFormOptions() {
           
           choices.forEach(choice => {
             let originalText = choice.getValue();
-            // Eliminar TODOS los emojis y texto de disponibilidad
-            originalText = originalText
-              .replace(/^[✅❌]\s*/, '') // Eliminar emojis al inicio
-              .replace(/\s*\([^)]*\)/g, '') // Eliminar todo entre paréntesis
-              .replace(/\s*-\s*[^.]*\./g, '') // Eliminar texto después de guión hasta punto
-              .replace(/\s*\.\s*$/g, '') // Eliminar punto final
-              .trim();
-            
-            console.log(`🧹 Limpiando: "${choice.getValue()}" -> "${originalText}"`);
+            // Eliminar cualquier texto de disponibilidad existente
+            originalText = originalText.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
             newChoices.push(choiceItem.createChoice(originalText));
           });
           
           choiceItem.setChoices(newChoices);
-          console.log(`✅ Opciones limpiadas para: ${title}`);
+          console.log(`🔄 Opciones limpiadas para: ${title}`);
         }
       }
     });
     
-    console.log("✅ Opciones del formulario limpiadas completamente");
+    console.log("✅ Opciones del formulario limpiadas");
     
   } catch (error) {
     console.error("❌ Error limpiando opciones:", error);
@@ -277,49 +226,34 @@ function updateFormOptions() {
           const choiceItem = item.asMultipleChoiceItem();
           const choices = choiceItem.getChoices();
           const newChoices = [];
-          const fullWorkshops = [];
           
           choices.forEach(choice => {
-            const rawValue = choice.getValue();
-            const cleanedKey = cleanWorkshopValue(rawValue);
+            let originalText = choice.getValue();
             
-            if (!cleanedKey) {
-              newChoices.push(choiceItem.createChoice(rawValue));
-              return;
+            // Limpiar el texto de disponibilidad existente antes de añadir el nuevo
+            originalText = originalText.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+            
+            // Buscar la disponibilidad para este taller
+            let available = 0;
+            
+            // Si el taller existe en WORKSHOP_NAMES
+            if (WORKSHOP_NAMES[originalText]) {
+              // Obtener la disponibilidad del objeto 'availability' (que ahora contiene números)
+              available = availability[originalText] !== undefined ? availability[originalText] : WORKSHOP_NAMES[originalText].capacity;
             }
             
-            if (!WORKSHOP_NAMES[cleanedKey]) {
-              newChoices.push(choiceItem.createChoice(cleanedKey));
-              console.log(`ℹ️ Opción preservada sin cambios: ${cleanedKey}`);
-              return;
-            }
-            
-            const workshopInfo = WORKSHOP_NAMES[cleanedKey];
-            const remaining = availability[cleanedKey] !== undefined ? availability[cleanedKey] : workshopInfo.capacity;
-            const normalizedRemaining = Math.max(0, Number(remaining) || 0);
-            
-            if (normalizedRemaining === 0) {
-              const unavailableText = `${cleanedKey} (COMPLETO - NO DISPONIBLE)`;
-              fullWorkshops.push(workshopInfo.name);
-              // Redirigir a reiniciar si alguien intenta seleccionarlo (para bloquear la inscripción)
-              newChoices.push(choiceItem.createChoice(unavailableText, FormApp.PageNavigationType.RESTART));
-              console.log(`🚫 Marcado como completo: ${cleanedKey}`);
+            let newText;
+            if (available <= 0) {
+              newText = `${originalText} (COMPLETO)`;
             } else {
-              const availableText = `${cleanedKey} (${normalizedRemaining} plazas disponibles)`;
-              newChoices.push(choiceItem.createChoice(availableText));
-              console.log(`🔄 Actualizado: ${cleanedKey} -> ${normalizedRemaining} plazas`);
+              newText = `${originalText} (${available} plazas disponibles)`;
             }
+            
+            newChoices.push(choiceItem.createChoice(newText));
+            console.log(`🔄 Actualizado: ${originalText} -> ${available} plazas`);
           });
           
           choiceItem.setChoices(newChoices);
-          
-          if (fullWorkshops.length > 0) {
-            const helpMessage = `Talleres completos (no disponibles):\n${fullWorkshops.map(name => `• ${name}`).join("\n")}\n\nSi necesitas plaza, revisa periódicamente por si se liberan plazas.`;
-            choiceItem.setHelpText(helpMessage);
-          } else {
-            choiceItem.setHelpText("");
-          }
-          
           console.log(`✅ Opciones actualizadas para: ${title}`);
         }
       }
@@ -355,7 +289,7 @@ function checkWorkshopAvailability() {
       const row = data[i];
       const estado = row[10]; // Columna K (índice 10) - Estado
       
-      if (estado === STATUS_CONFIRMED) {
+      if (estado === 'Confirmado') {
         confirmadas++;
         const taller1 = row[7]; // Columna H (índice 7) - 1ª Sesión
         const taller2 = row[8]; // Columna I (índice 8) - 2ª Sesión
@@ -363,8 +297,8 @@ function checkWorkshopAvailability() {
         console.log(`📝 Fila ${i}: ${taller1}, ${taller2}, Estado: ${estado}`);
         
         // Limpiar nombres de talleres (eliminar texto de disponibilidad)
-        let cleanTaller1 = cleanWorkshopValue(taller1);
-        let cleanTaller2 = cleanWorkshopValue(taller2);
+        let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+        let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
         
         console.log(`🧹 Talleres limpios: "${cleanTaller1}", "${cleanTaller2}"`);
         
@@ -373,18 +307,14 @@ function checkWorkshopAvailability() {
           availability[cleanTaller1] = Math.max(0, availability[cleanTaller1] - 1);
           console.log(`📉 Descontada 1 plaza de ${cleanTaller1}. Quedan: ${availability[cleanTaller1]}`);
         } else {
-          if (isWorkshopSelected(cleanTaller1)) {
-            console.log(`⚠️ Taller 1 no encontrado en mapeo: "${cleanTaller1}"`);
-          }
+          console.log(`⚠️ Taller 1 no encontrado en mapeo: "${cleanTaller1}"`);
         }
         
         if (WORKSHOP_NAMES[cleanTaller2]) {
           availability[cleanTaller2] = Math.max(0, availability[cleanTaller2] - 1);
           console.log(`📉 Descontada 1 plaza de ${cleanTaller2}. Quedan: ${availability[cleanTaller2]}`);
         } else {
-          if (isWorkshopSelected(cleanTaller2)) {
-            console.log(`⚠️ Taller 2 no encontrado en mapeo: "${cleanTaller2}"`);
-          }
+          console.log(`⚠️ Taller 2 no encontrado en mapeo: "${cleanTaller2}"`);
         }
       }
     }
@@ -403,8 +333,8 @@ function checkWorkshopAvailability() {
 // Verificar si hay plazas disponibles para los talleres seleccionados (CORREGIDA)
 function checkAvailability(taller1, taller2, availability) {
   // Limpiar los nombres de talleres (eliminar texto de disponibilidad)
-  let cleanTaller1 = cleanWorkshopValue(taller1);
-  let cleanTaller2 = cleanWorkshopValue(taller2);
+  let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+  let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
   
   console.log(`🧹 Taller 1 limpio: "${cleanTaller1}"`);
   console.log(`🧹 Taller 2 limpio: "${cleanTaller2}"`);
@@ -417,14 +347,10 @@ function checkAvailability(taller1, taller2, availability) {
   return available1 > 0 && available2 > 0;
 }
 
-// Verificar disponibilidad para un solo taller (NUEVA FUNCIÓN)
+// Verificar disponibilidad para un solo taller
 function checkSingleWorkshopAvailability(taller, availability) {
-  if (!isWorkshopSelected(taller)) {
-    console.log("ℹ️ Taller no seleccionado, no se requiere verificación.");
-    return true;
-  }
   // Limpiar el nombre del taller (eliminar texto de disponibilidad)
-  let cleanTaller = cleanWorkshopValue(taller);
+  let cleanTaller = taller.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
   
   console.log(`🧹 Taller único limpio: "${cleanTaller}"`);
   
@@ -439,16 +365,14 @@ function checkSingleWorkshopAvailability(taller, availability) {
 function confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, taller2) {
   const sheet = SpreadsheetApp.getActiveSheet();
   const lastRow = sheet.getLastRow();
-  const safeTaller1 = normalizeWorkshopSelection(taller1);
-  const safeTaller2 = normalizeWorkshopSelection(taller2);
   
   // Actualizar estado a "Confirmado" (columna K) y Fecha de inscripción (columna L)
-  sheet.getRange(lastRow, 11).setValue(STATUS_CONFIRMED);
+  sheet.getRange(lastRow, 11).setValue('Confirmado');
   sheet.getRange(lastRow, 12).setValue(new Date());
   
   // Enviar email de confirmación
   const subject = "CONFIRMACION DE INSCRIPCION - XIV Foro de Innovación Educativa";
-  const body = createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2);
+  const body = createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2);
   MailApp.sendEmail({
     to: email,
     subject: subject,
@@ -459,7 +383,7 @@ function confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, 
   
   // Notificar al administrador
   const adminSubject = `NUEVA INSCRIPCION CONFIRMADA: ${nombre} ${apellidos}`;
-  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2, STATUS_CONFIRMED, email);
+  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2, "Confirmado", email);
   MailApp.sendEmail({
     to: ADMIN_EMAIL,
     subject: adminSubject,
@@ -475,16 +399,14 @@ function confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, 
 function addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller2) {
   const sheet = SpreadsheetApp.getActiveSheet();
   const lastRow = sheet.getLastRow();
-  const safeTaller1 = normalizeWorkshopSelection(taller1);
-  const safeTaller2 = normalizeWorkshopSelection(taller2);
   
   // Actualizar estado a "Lista de Espera" (columna K) y Fecha de inscripción (columna L)
-  sheet.getRange(lastRow, 11).setValue(STATUS_WAITLIST);
+  sheet.getRange(lastRow, 11).setValue('Lista de Espera');
   sheet.getRange(lastRow, 12).setValue(new Date());
   
   // Enviar email de lista de espera
   const subject = "LISTA DE ESPERA - XIV Foro de Innovación Educativa";
-  const body = createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2);
+  const body = createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2);
   MailApp.sendEmail({
     to: email,
     subject: subject,
@@ -495,7 +417,7 @@ function addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller
   
   // Notificar al administrador
   const adminSubject = `NUEVA INSCRIPCION EN LISTA DE ESPERA: ${nombre} ${apellidos}`;
-  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2, STATUS_WAITLIST, email);
+  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2, "Lista de Espera", email);
   MailApp.sendEmail({
     to: ADMIN_EMAIL,
     subject: adminSubject,
@@ -510,8 +432,34 @@ function addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller
 // --- Funciones para crear los cuerpos de los emails (SIN EMOJIS) ---
 
 function createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2) {
-  const displayTaller1 = getWorkshopDisplayName(taller1);
-  const displayTaller2 = getWorkshopDisplayName(taller2);
+  // Limpiar los nombres de talleres para buscar en WORKSHOP_NAMES
+  let cleanTaller1 = taller1 ? taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
+  let cleanTaller2 = taller2 ? taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
+
+  // Construir la lista de talleres seleccionados
+  let workshopsList = '';
+  if (cleanTaller1 && cleanTaller2) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
+        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+      </ul>
+    `;
+  } else if (cleanTaller1) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
+        <li><strong>2ª Sesión:</strong> No seleccionado</li>
+      </ul>
+    `;
+  } else if (cleanTaller2) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> No seleccionado</li>
+        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+      </ul>
+    `;
+  }
 
   return `
     <!DOCTYPE html>
@@ -539,10 +487,7 @@ function createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1,
           <p>¡Tu inscripción al <strong>XIV Foro de Innovación Educativa</strong> ha sido confirmada con éxito!</p>
           <p>Te has inscrito como: <strong>${meInscriboComo}</strong></p>
           <p>Tus talleres seleccionados son:</p>
-          <ul class="workshop-list">
-            <li><strong>1ª Sesión:</strong> ${displayTaller1}</li>
-            <li><strong>2ª Sesión:</strong> ${displayTaller2}</li>
-          </ul>
+          ${workshopsList}
           <p>¡Esperamos verte allí!</p>
           <p>Atentamente,</p>
           <p>El equipo del XIV Foro de Innovación Educativa</p>
@@ -557,8 +502,34 @@ function createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1,
 }
 
 function createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2) {
-  const displayTaller1 = getWorkshopDisplayName(taller1);
-  const displayTaller2 = getWorkshopDisplayName(taller2);
+  // Limpiar los nombres de talleres para buscar en WORKSHOP_NAMES
+  let cleanTaller1 = taller1 ? taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
+  let cleanTaller2 = taller2 ? taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
+
+  // Construir la lista de talleres seleccionados
+  let workshopsList = '';
+  if (cleanTaller1 && cleanTaller2) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
+        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+      </ul>
+    `;
+  } else if (cleanTaller1) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
+        <li><strong>2ª Sesión:</strong> No seleccionado</li>
+      </ul>
+    `;
+  } else if (cleanTaller2) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> No seleccionado</li>
+        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+      </ul>
+    `;
+  }
 
   return `
     <!DOCTYPE html>
@@ -587,10 +558,7 @@ function createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, taller1, tal
           <p>Actualmente, los talleres que has seleccionado están completos, por lo que te hemos añadido a la lista de espera.</p>
           <p>Te has inscrito como: <strong>${meInscriboComo}</strong></p>
           <p>Tus talleres seleccionados son:</p>
-          <ul class="workshop-list">
-            <li><strong>1ª Sesión:</strong> ${displayTaller1}</li>
-            <li><strong>2ª Sesión:</strong> ${displayTaller2}</li>
-          </ul>
+          ${workshopsList}
           <p>Si se libera alguna plaza, te notificaremos inmediatamente.</p>
           <p>¡Gracias por tu interés!</p>
           <p>Atentamente,</p>
@@ -616,8 +584,33 @@ function createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, tal
   });
 
   // Limpiar los nombres de talleres para buscar en WORKSHOP_NAMES
-  const displayTaller1 = getWorkshopDisplayName(taller1);
-  const displayTaller2 = getWorkshopDisplayName(taller2);
+  let cleanTaller1 = taller1 ? taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
+  let cleanTaller2 = taller2 ? taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
+
+  // Construir la lista de talleres seleccionados
+  let workshopsList = '';
+  if (cleanTaller1 && cleanTaller2) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
+        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+      </ul>
+    `;
+  } else if (cleanTaller1) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
+        <li><strong>2ª Sesión:</strong> No seleccionado</li>
+      </ul>
+    `;
+  } else if (cleanTaller2) {
+    workshopsList = `
+      <ul class="workshop-list">
+        <li><strong>1ª Sesión:</strong> No seleccionado</li>
+        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+      </ul>
+    `;
+  }
 
   return `
     <!DOCTYPE html>
@@ -628,11 +621,11 @@ function createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, tal
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        .header { background-color: ${status === STATUS_CONFIRMED ? '#4CAF50' : '#FFC107'}; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header { background-color: ${status === 'Confirmado' ? '#4CAF50' : '#FFC107'}; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
         .content { padding: 20px; }
         .footer { text-align: center; font-size: 0.8em; color: #777; margin-top: 20px; }
         .workshop-list { list-style-type: none; padding: 0; }
-        .workshop-list li { background-color: #f9f9f9; margin-bottom: 5px; padding: 10px; border-left: 5px solid ${status === STATUS_CONFIRMED ? '#4CAF50' : '#FFC107'}; }
+        .workshop-list li { background-color: #f9f9f9; margin-bottom: 5px; padding: 10px; border-left: 5px solid ${status === 'Confirmado' ? '#4CAF50' : '#FFC107'}; }
         .availability-list { list-style-type: none; padding: 0; border-top: 1px solid #eee; margin-top: 20px; padding-top: 10px;}
         .availability-list li { margin-bottom: 3px; }
       </style>
@@ -640,7 +633,7 @@ function createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, tal
     <body>
       <div class="container">
         <div class="header">
-          <h2>${status === STATUS_CONFIRMED ? 'NUEVA INSCRIPCION CONFIRMADA' : 'NUEVA INSCRIPCION EN LISTA DE ESPERA'}</h2>
+          <h2>${status === 'Confirmado' ? 'NUEVA INSCRIPCION CONFIRMADA' : 'NUEVA INSCRIPCION EN LISTA DE ESPERA'}</h2>
         </div>
         <div class="content">
           <p>Se ha registrado una nueva inscripción:</p>
@@ -651,10 +644,7 @@ function createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, tal
             <li><strong>Estado:</strong> <strong>${status}</strong></li>
             </ul>
           <p>Talleres seleccionados:</p>
-          <ul class="workshop-list">
-            <li><strong>1ª Sesión:</strong> ${displayTaller1}</li>
-            <li><strong>2ª Sesión:</strong> ${displayTaller2}</li>
-          </ul>
+          ${workshopsList}
           <h3>RESUMEN DE PLAZAS ACTUAL:</h3>
           <ul class="availability-list">
             ${availabilityDetails}
@@ -897,7 +887,7 @@ function diagnosticPlazas() {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const estado = row[10]; // Columna K (índice 10)
-      if (estado === STATUS_CONFIRMED) {
+      if (estado === 'Confirmado') {
         console.log(`   Fila ${i}: ${row[7]} + ${row[8]}`);
       }
     }
@@ -1108,7 +1098,7 @@ function diagnosticarDescuentoPlazas() {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const estado = row[10]; // Columna K (índice 10)
-      if (estado === STATUS_CONFIRMED) {
+      if (estado === 'Confirmado') {
         confirmadas++;
         console.log(`   Fila ${i}: ${row[7]} + ${row[8]} - Estado: ${estado}`);
       }
@@ -1196,115 +1186,264 @@ function probarDescuentoPlazas() {
   }
 }
 
-// Función para probar el sistema completo sin trigger
-function probarSistemaCompleto() {
+function contarInscripcionesManual() {
   try {
-    console.log("🧪 Probando sistema completo...");
+    console.log("🔢 Contando inscripciones manualmente...");
     
-    // 1. Verificar estado actual
-    console.log("📊 Paso 1: Verificando estado actual...");
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getActiveSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    if (data.length <= 1) {
+      console.log("❌ No hay datos en la hoja");
+      return;
+    }
+    
+    const headers = data[0];
+    const taller1Col = headers.indexOf("¿En qué taller quiero apuntarme a las 17:30 – 18:15 h?");
+    const taller2Col = headers.indexOf("¿En qué taller quiero apuntarme a las 18:30 – 19:15 h?");
+    const estadoCol = headers.indexOf("Estado");
+    
+    if (taller1Col === -1 || taller2Col === -1) {
+      console.log("❌ No se encontraron las columnas de talleres");
+      return;
+    }
+    
+    // Contador para cada taller
+    const contadores = {};
+    
+    // Inicializar contadores
+    Object.keys(WORKSHOP_NAMES).forEach(key => {
+      contadores[key] = { franja1: 0, franja2: 0, total: 0 };
+    });
+    
+    // Contar inscripciones CONFIRMADAS únicamente
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const taller1 = row[taller1Col];
+      const taller2 = row[taller2Col];
+      const estado = estadoCol !== -1 ? row[estadoCol] : row[10];
+      
+      // Solo contar inscripciones confirmadas
+      if (estado && String(estado).trim().toLowerCase() === 'confirmado') {
+        if (taller1 && taller1.trim()) {
+          const cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+          if (WORKSHOP_NAMES[cleanTaller1]) {
+            contadores[cleanTaller1].franja1++;
+            contadores[cleanTaller1].total++;
+          }
+        }
+        
+        if (taller2 && taller2.trim()) {
+          const cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+          if (WORKSHOP_NAMES[cleanTaller2]) {
+            contadores[cleanTaller2].franja2++;
+            contadores[cleanTaller2].total++;
+          }
+        }
+      }
+    }
+    
+    // Mostrar resultados
+    console.log("📊 CONTEO MANUAL DE INSCRIPCIONES CONFIRMADAS:");
+    console.log("=".repeat(60));
+    
+    Object.keys(WORKSHOP_NAMES).forEach(key => {
+      const total = contadores[key].total;
+      const disponible = WORKSHOP_NAMES[key].capacity - total;
+      const estado = disponible <= 0 ? "COMPLETO" : `${disponible} plazas`;
+      
+      console.log(`${key}:`);
+      console.log(`  Franja 1: ${contadores[key].franja1} inscritos`);
+      console.log(`  Franja 2: ${contadores[key].franja2} inscritos`);
+      console.log(`  Total únicos: ${total} inscritos`);
+      console.log(`  Capacidad: ${WORKSHOP_NAMES[key].capacity}`);
+      console.log(`  Disponibles: ${disponible}`);
+      console.log(`  Estado: ${estado}`);
+      console.log("");
+    });
+    
+    // Mostrar también el conteo del sistema actual para comparar
+    console.log("🔍 COMPARACIÓN CON SISTEMA ACTUAL:");
+    console.log("=".repeat(40));
     const availability = checkWorkshopAvailability();
-    console.log("📊 Disponibilidad actual:", availability);
-    
-    // 2. Mostrar talleres completos vs disponibles
-    console.log("📋 Paso 2: Resumen de talleres:");
-    console.log("❌ Talleres completos:");
-    Object.keys(availability).forEach(workshopKey => {
-      if (availability[workshopKey] <= 0) {
-        console.log(`   - ${WORKSHOP_NAMES[workshopKey].name}: ${availability[workshopKey]} plazas`);
+    Object.keys(WORKSHOP_NAMES).forEach(key => {
+      const sistemaActual = availability[key];
+      const manual = WORKSHOP_NAMES[key].capacity - contadores[key].total;
+      const diferencia = sistemaActual - manual;
+      
+      if (diferencia !== 0) {
+        console.log(`⚠️ ${key}: Sistema=${sistemaActual}, Manual=${manual}, Diferencia=${diferencia}`);
       }
     });
     
-    console.log("✅ Talleres disponibles:");
-    Object.keys(availability).forEach(workshopKey => {
-      if (availability[workshopKey] > 0) {
-        console.log(`   - ${WORKSHOP_NAMES[workshopKey].name}: ${availability[workshopKey]} plazas`);
+  } catch (error) {
+    console.error("❌ Error en conteo manual:", error);
+  }
+}
+
+function corregirConteoInscripciones() {
+  try {
+    console.log("🔧 Corrigiendo conteo de inscripciones...");
+    
+    // Datos correctos proporcionados por el usuario (basados en capacidad real)
+    const datosCorrectos = {
+      "1. Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula Instituto Artes Escénicas": { disponibles: 14 },
+      "2. Matemáticas creativas en Educación Primaria Irene López, Cristina Bezón y Beatriz Hernández Santa María la Blanca": { disponibles: 19 },
+      "3. Matemáticas competenciales en Secundaria Manuel Llorens Santa María la Blanca": { disponibles: 17 },
+      "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca": { disponibles: 0 },
+      "5. Innovación social: crea, actúa y cambia el mundo Luis Miguel Olivas Fundación Iruaritz Lezama": { disponibles: 14 },
+      "6. Crecer sin alas prestadas Equipo de Acompañate Santa María la Blanca": { disponibles: 22 },
+      "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer": { disponibles: 0 },
+      "8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense": { disponibles: 21 },
+      "9. Inspira Talks: La escuela de los sentidos A) Pequeños grandes viajes sensoriales Ana Posada Santa María la Blanca B) Cuerpo que juega, mente que aprende Lorena Gómez Santa María la Blanca": { disponibles: 9 },
+      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca": { disponibles: 0 },
+      "11. Godly Play: «Jugando con Dios» Equipo Godly Play Santa María la Blanca": { disponibles: 12 },
+      "12. Copilot Chat en el aula: cómo multiplicar el potencial docente con IA Felipe García Gaitero Universidad Europea": { disponibles: 18 },
+      "13. IA para mentes que enseñan Antonio Julio López Universidad Rey Juan Carlos": { disponibles: 11 },
+      "14. Más allá del marcador: deporte, valores y emociones Jose Javier Illana illanactiva": { disponibles: 18 },
+      "15. Networking y Comunicación Estratégica en la Escuela y en la Vida Lucila Ballarino ConexIA": { disponibles: 18 },
+      "16. Palabras que construyen: herramientas para transformar el conflicto en conexión con los adolescentes Ana López e Iranzu Arellano Santa María la Blanca": { disponibles: 8 },
+      "17. Inspira Talks: Humanizar la educación A) Transformación Digital e Innovación Educativa | IA Aplicada a la Educación Antonio Segura Marrero UNIR B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": { disponibles: 22 },
+      "18. Inspira Talks: La emoción de acompañar A) Conciencia emocional: el punto de partida para educar Sara Hernández Cano Educandoatulado B) Cuidar, acompañar y educar Colegio San Ignacio de Loyola": { disponibles: 1 }
+    };
+    
+    console.log("📊 DATOS CORRECTOS:");
+    console.log("=".repeat(50));
+    
+    Object.keys(datosCorrectos).forEach(key => {
+      const data = datosCorrectos[key];
+      const estado = data.disponibles <= 0 ? "COMPLETO" : `${data.disponibles} plazas`;
+      
+      console.log(`${key}:`);
+      console.log(`  Disponibles: ${data.disponibles}`);
+      console.log(`  Estado: ${estado}`);
+      console.log("");
+    });
+    
+    // Actualizar el formulario con los datos correctos
+    console.log("🔄 Actualizando formulario con datos correctos...");
+    updateFormOptionsWithCorrectData(datosCorrectos);
+    
+  } catch (error) {
+    console.error("❌ Error corrigiendo conteo:", error);
+  }
+}
+
+function updateFormOptionsWithCorrectData(datosCorrectos) {
+  try {
+    const form = FormApp.openById(FORM_ID);
+    const items = form.getItems();
+    
+    items.forEach(item => {
+      const title = item.getTitle();
+      
+      if (title.includes("¿En qué taller quiero apuntarme a las 17:30 – 18:15 h?") || 
+          title.includes("¿En qué taller quiero apuntarme a las 18:30 – 19:15 h?")) {
+        
+        if (item.getType() === FormApp.ItemType.MULTIPLE_CHOICE) {
+          const choiceItem = item.asMultipleChoiceItem();
+          const choices = choiceItem.getChoices();
+          const newChoices = [];
+          const completos = [];
+          
+          choices.forEach(choice => {
+            let originalText = choice.getValue();
+            
+            // Limpiar el texto de disponibilidad existente
+            originalText = originalText.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+            
+            // Buscar en los datos correctos
+            let available = 0;
+            if (datosCorrectos[originalText]) {
+              available = datosCorrectos[originalText].disponibles;
+            } else if (WORKSHOP_NAMES[originalText]) {
+              available = WORKSHOP_NAMES[originalText].capacity;
+            }
+            
+            if (available <= 0) {
+              // Agregar a la lista de completos
+              completos.push(originalText);
+              console.log(`❌ COMPLETO: ${originalText}`);
+            } else {
+              // Agregar como opción disponible
+              const newText = `${originalText} (${available} plazas disponibles)`;
+              newChoices.push(choiceItem.createChoice(newText));
+              console.log(`✅ Disponible: ${originalText} -> ${available} plazas`);
+            }
+          });
+          
+          // Establecer solo las opciones disponibles
+          choiceItem.setChoices(newChoices);
+          
+          // Agregar talleres completos al texto de ayuda
+          if (completos.length > 0) {
+            const helpText = `COMPLETO:\n- ${completos.join('\n- ')}`;
+            item.setHelpText(helpText);
+            console.log(`📝 Help text actualizado: ${helpText}`);
+          } else {
+            item.setHelpText("");
+          }
+          
+          console.log(`✅ Opciones actualizadas para: ${title}. Disponibles: ${newChoices.length}, Completos: ${completos.length}`);
+        }
       }
     });
     
-    // 3. Limpiar formulario
-    console.log("🧹 Paso 3: Limpiando formulario...");
+    console.log("✅ Formulario actualizado con datos correctos");
+    
+  } catch (error) {
+    console.error("❌ Error actualizando formulario:", error);
+  }
+}
+
+function forzarActualizacionCorrecta() {
+  try {
+    console.log("🔧 Forzando actualización con números exactos...");
+    
+    // Primero limpiar todas las opciones
     cleanFormOptions();
     
-    // 4. Actualizar formulario
-    console.log("🔄 Paso 4: Actualizando formulario...");
-    updateFormOptions();
+    // Luego aplicar los datos correctos
+    corregirConteoInscripciones();
     
-    console.log("✅ Prueba del sistema completada");
+    console.log("✅ Actualización forzada completada");
+    
+  } catch (error) {
+    console.error("❌ Error en actualización forzada:", error);
+  }
+}
+
+// Función para probar inscripción con un solo taller
+function probarInscripcionUnTaller() {
+  try {
+    console.log("🧪 Probando inscripción con un solo taller...");
+    
+    // Simular datos de prueba con solo un taller
+    const testData = [
+      new Date(), // Marca temporal
+      "Marifé", // Nombre
+      "Cañas Rincón", // Apellidos
+      "mfcanas@p.csmb.es", // Email
+      "12345678Z", // DNI
+      "Periodista", // Me inscribo como
+      "Colegio de Prueba", // Institución
+      "6. Crecer sin alas prestadas Equipo de Acompañate Santa María la Blanca", // Solo Taller 1ª sesión
+      "", // Taller 2ª sesión vacío
+      "Sí", // Comunicación digital
+      "", // Estado (se llenará por el script)
+      ""  // Fecha de inscripción (se llenará por el script)
+    ];
+    
+    // Añadir fila de prueba a la hoja
+    const sheet = SpreadsheetApp.getActiveSheet();
+    sheet.appendRow(testData);
+    
+    // Llamar a onFormSubmit
+    onFormSubmit({values: testData});
+    
+    console.log("✅ Prueba de inscripción con un solo taller completada");
     
   } catch (error) {
     console.error("❌ Error en prueba:", error);
-  }
-}
-
-// Función para simular una inscripción real (para testing)
-function simularInscripcionReal() {
-  try {
-    console.log("🧪 Simulando inscripción real...");
-    
-    // Simular datos reales del CSV
-    const testData = [
-      new Date(), // Marca temporal
-      "María", // Nombre
-      "García López", // Apellidos
-      "maria.garcia@ejemplo.com", // Email
-      "12345678X", // DNI
-      "Docente", // Me inscribo como
-      "Colegio de Prueba", // Institución
-      "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer", // Taller 1ª sesión
-      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca", // Taller 2ª sesión
-      "Sí", // Comunicación digital
-      "", // Estado (se llenará por el script)
-      ""  // Fecha de inscripción (se llenará por el script)
-    ];
-    
-    // Simular el evento del formulario
-    const mockEvent = {
-      values: testData
-    };
-    
-    // Llamar a onFormSubmit con el evento simulado
-    onFormSubmit(mockEvent);
-    
-    console.log("✅ Simulación de inscripción completada");
-    
-  } catch (error) {
-    console.error("❌ Error en simulación:", error);
-  }
-}
-
-// Función para probar el caso específico del error (solo taller2)
-function probarCasoErrorTaller2() {
-  try {
-    console.log("🧪 Probando caso específico del error (solo taller2)...");
-    
-    // Simular el caso exacto del error: solo taller2 seleccionado
-    const testData = [
-      new Date(), // Marca temporal
-      "uwejbfksd", // Nombre (del error)
-      "sdfsfs", // Apellidos (del error)
-      "raqelcb+prueba@gmail.com", // Email (del error)
-      "12345678X", // DNI
-      "Docente", // Me inscribo como
-      "Colegio de Prueba", // Institución
-      "", // Taller 1ª sesión (VACÍO - como en el error)
-      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca (9 plazas disponibles)", // Taller 2ª sesión (del error)
-      "Sí", // Comunicación digital
-      "", // Estado (se llenará por el script)
-      ""  // Fecha de inscripción (se llenará por el script)
-    ];
-    
-    // Simular el evento del formulario
-    const mockEvent = {
-      values: testData
-    };
-    
-    // Llamar a onFormSubmit con el evento simulado
-    onFormSubmit(mockEvent);
-    
-    console.log("✅ Prueba del caso específico completada");
-    
-  } catch (error) {
-    console.error("❌ Error en prueba del caso específico:", error);
   }
 }
