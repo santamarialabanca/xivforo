@@ -11,45 +11,45 @@ const WORKSHOP_NAMES = {
   },
   "2. Matemáticas creativas en Educación Primaria Irene López, Cristina Bezón y Beatriz Hernández Santa María la Blanca": { 
     name: "Matemáticas creativas en Educación Primaria", 
-    capacity: 20 
+    capacity: 25 
   },
   "3. Matemáticas competenciales en Secundaria Manuel Llorens Santa María la Blanca": { 
     name: "Matemáticas competenciales en Secundaria", 
-    capacity: 22 
+    capacity: 25 
   },
   "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca": { 
     name: "AyudIA! – La Inteligencia Artificial como compañera", 
-    capacity: 18 
+    capacity: 25
   },
   "5. Innovación social: crea, actúa y cambia el mundo Luis Miguel Olivas Fundación Iruaritz Lezama": { 
     name: "Innovación social: crea, actúa y cambia el mundo", 
-    capacity: 20 
+    capacity: 25 
   },
   "6. Crecer sin alas prestadas Equipo de Acompañate Santa María la Blanca": { 
     name: "Crecer sin alas prestadas", 
-    capacity: 15 
+    capacity: 25 
   },
   "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer": { 
     name: "Claves para cultivar tu salud", 
-    capacity: 20 
+    capacity: 25 
   },
   "8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense": { 
     name: "Metacognición. Una necesidad", 
-    capacity: 18 
+    capacity: 25 
   },
   "9. Inspira Talks: La escuela de los sentidos A) Pequeños grandes viajes sensoriales Ana Posada Santa María la Blanca B) Cuerpo que juega, mente que aprende Lorena Gómez Santa María la Blanca": { 
     name: "La escuela de los sentidos", 
-    capacity: 30 
+    capacity: 25 
   },
   
   // 2ª FRANJA (18:30-19:15h)
   "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca": { 
     name: "GameLab inclusivo: del aula al juego", 
-    capacity: 20 
+    capacity: 26 
   },
   "11. Godly Play: «Jugando con Dios» Equipo Godly Play Santa María la Blanca": { 
     name: "Godly Play: \"Jugando con Dios\"", 
-    capacity: 15 
+    capacity: 25 
   },
   "12. Copilot Chat en el aula: cómo multiplicar el potencial docente con IA Felipe García Gaitero Universidad Europea": { 
     name: "Copilot Chat en el aula: cómo multiplicar el potencial docente", 
@@ -57,29 +57,69 @@ const WORKSHOP_NAMES = {
   },
   "13. IA para mentes que enseñan Antonio Julio López Universidad Rey Juan Carlos": { 
     name: "IA para mentes que enseñan", 
-    capacity: 20 
+    capacity: 25 
   },
   "14. Más allá del marcador: deporte, valores y emociones Jose Javier Illana illanactiva": { 
     name: "Más allá del marcador: deporte, valores y emociones", 
-    capacity: 18 
+    capacity: 25 
   },
   "15. Networking y Comunicación Estratégica en la Escuela y en la Vida Lucila Ballarino ConexIA": { 
     name: "Networking y Comunicación Estratégica", 
-    capacity: 22 
+    capacity: 25 
   },
   "16. Palabras que construyen: herramientas para transformar el conflicto en conexión con los adolescentes Ana López e Iranzu Arellano Santa María la Blanca": { 
     name: "Palabras que construyen: herramientas para transformar el conflicto", 
-    capacity: 15 
+    capacity: 12 
   },
   "17. Inspira Talks: Humanizar la educación A) Transformación Digital e Innovación Educativa | IA Aplicada a la Educación Antonio Segura Marrero UNIR B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": { 
     name: "Humanizar la educación", 
-    capacity: 20 
+    capacity: 25 
   },
   "18. Inspira Talks: La emoción de acompañar A) Conciencia emocional: el punto de partida para educar Sara Hernández Cano Educandoatulado B) Cuidar, acompañar y educar Colegio San Ignacio de Loyola": { 
     name: "La emoción de acompañar", 
-    capacity: 18 
+    capacity: 25 
   }
 };
+
+const NO_SELECTION = "No seleccionado";
+const STATUS_CONFIRMED = "Confirmado";
+const STATUS_WAITLIST = "Lista de Espera";
+const WORKSHOP_STATUS_REGEX = /\s*\((?:\d+\/\d+\splazas disponibles|\d+\splazas disponibles|COMPLETO(?:\s*-\s*NO DISPONIBLE)?)\)/gi;
+
+function normalizeWorkshopSelection(value) {
+  const text = value !== undefined && value !== null ? String(value).trim() : "";
+  return text ? text : NO_SELECTION;
+}
+
+function cleanWorkshopValue(value) {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  return String(value)
+    .replace(/^[✅❌]\s*/, "")
+    .replace(WORKSHOP_STATUS_REGEX, "")
+    .replace(/\s*-\s*NO DISPONIBLE/gi, "")
+    .replace(/\s*\.\s*$/g, "")
+    .trim();
+}
+
+function resolveWorkshopKey(value) {
+  const cleaned = cleanWorkshopValue(value);
+  return WORKSHOP_NAMES[cleaned] ? cleaned : "";
+}
+
+function isWorkshopSelected(value) {
+  const cleaned = cleanWorkshopValue(value);
+  return !!cleaned && cleaned !== NO_SELECTION;
+}
+
+function getWorkshopDisplayName(value) {
+  const cleaned = cleanWorkshopValue(value);
+  if (!cleaned || cleaned === NO_SELECTION) {
+    return NO_SELECTION;
+  }
+  return WORKSHOP_NAMES[cleaned] ? WORKSHOP_NAMES[cleaned].name : cleaned;
+}
 
 // Función principal que se ejecuta al enviar el formulario
 function onFormSubmit(e) {
@@ -101,10 +141,22 @@ function onFormSubmit(e) {
     
     console.log("📝 Datos procesados:", {email, nombre, apellidos, meInscriboComo, taller1, taller2});
     
-    // Verificar que tenemos todos los datos necesarios
-    if (!email || !nombre || !apellidos || !taller1 || !taller2) {
+    // Procesar talleres primero (usar valores por defecto si están vacíos)
+    const taller1Final = normalizeWorkshopSelection(taller1);
+    const taller2Final = normalizeWorkshopSelection(taller2);
+    console.log("📝 Talleres procesados:", {taller1Final, taller2Final});
+    
+    // Verificar que tenemos los datos básicos necesarios (los talleres son opcionales)
+    if (!email || !nombre || !apellidos) {
       console.error("❌ Faltan datos obligatorios");
-      MailApp.sendEmail(ADMIN_EMAIL, "❌ Error: Datos incompletos", `Faltan datos obligatorios en la inscripción. Email: ${email}, Nombre: ${nombre}, Apellidos: ${apellidos}, Taller1: ${taller1}, Taller2: ${taller2}`);
+      MailApp.sendEmail(ADMIN_EMAIL, "❌ Error: Datos incompletos", `Faltan datos obligatorios en la inscripción. Email: ${email}, Nombre: ${nombre}, Apellidos: ${apellidos}, Taller1: ${taller1Final}, Taller2: ${taller2Final}`);
+      return;
+    }
+    
+    // Verificar que al menos un taller esté seleccionado
+    if (taller1Final === NO_SELECTION && taller2Final === NO_SELECTION) {
+      console.error("❌ No se ha seleccionado ningún taller");
+      MailApp.sendEmail(ADMIN_EMAIL, "❌ Error: Sin talleres seleccionados", `El usuario no ha seleccionado ningún taller. Email: ${email}, Nombre: ${nombre}, Apellidos: ${apellidos}`);
       return;
     }
     
@@ -112,16 +164,27 @@ function onFormSubmit(e) {
     const availability = checkWorkshopAvailability();
     console.log("📊 Disponibilidad actual:", availability);
     
-    // Verificar si se puede confirmar la inscripción
-    const canConfirm = checkAvailability(taller1, taller2, availability);
+    // Verificar si se puede confirmar la inscripción (manejar cualquier combinación)
+    let canConfirm;
+    
+    if (taller1Final !== NO_SELECTION && taller2Final !== NO_SELECTION) {
+      // Si hay dos talleres, verificar ambos
+      canConfirm = checkAvailability(taller1Final, taller2Final, availability);
+    } else if (taller1Final !== NO_SELECTION) {
+      // Si solo hay taller1, verificar solo el primero
+      canConfirm = checkSingleWorkshopAvailability(taller1Final, availability);
+    } else if (taller2Final !== NO_SELECTION) {
+      // Si solo hay taller2, verificar solo el segundo
+      canConfirm = checkSingleWorkshopAvailability(taller2Final, availability);
+    }
     console.log("✅ ¿Se puede confirmar?", canConfirm);
     
     if (canConfirm) {
       // Confirmar inscripción
-      confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, taller2);
+      confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1Final, taller2Final);
     } else {
       // Añadir a lista de espera
-      addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller2);
+      addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1Final, taller2Final);
     }
     
     // Actualizar las opciones del formulario con las plazas restantes
@@ -133,7 +196,7 @@ function onFormSubmit(e) {
   }
 }
 
-// Función para limpiar las opciones del formulario (eliminar texto de disponibilidad)
+// Función para limpiar las opciones del formulario (eliminar texto de disponibilidad y emojis)
 function cleanFormOptions() {
   try {
     console.log("🧹 Limpiando opciones del formulario...");
@@ -159,18 +222,25 @@ function cleanFormOptions() {
           
           choices.forEach(choice => {
             let originalText = choice.getValue();
-            // Eliminar cualquier texto de disponibilidad existente
-            originalText = originalText.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+            // Eliminar TODOS los emojis y texto de disponibilidad
+            originalText = originalText
+              .replace(/^[✅❌]\s*/, '') // Eliminar emojis al inicio
+              .replace(/\s*\([^)]*\)/g, '') // Eliminar todo entre paréntesis
+              .replace(/\s*-\s*[^.]*\./g, '') // Eliminar texto después de guión hasta punto
+              .replace(/\s*\.\s*$/g, '') // Eliminar punto final
+              .trim();
+            
+            console.log(`🧹 Limpiando: "${choice.getValue()}" -> "${originalText}"`);
             newChoices.push(choiceItem.createChoice(originalText));
           });
           
           choiceItem.setChoices(newChoices);
-          console.log(`🔄 Opciones limpiadas para: ${title}`);
+          console.log(`✅ Opciones limpiadas para: ${title}`);
         }
       }
     });
     
-    console.log("✅ Opciones del formulario limpiadas");
+    console.log("✅ Opciones del formulario limpiadas completamente");
     
   } catch (error) {
     console.error("❌ Error limpiando opciones:", error);
@@ -207,34 +277,49 @@ function updateFormOptions() {
           const choiceItem = item.asMultipleChoiceItem();
           const choices = choiceItem.getChoices();
           const newChoices = [];
+          const fullWorkshops = [];
           
           choices.forEach(choice => {
-            let originalText = choice.getValue();
+            const rawValue = choice.getValue();
+            const cleanedKey = cleanWorkshopValue(rawValue);
             
-            // Limpiar el texto de disponibilidad existente antes de añadir el nuevo
-            originalText = originalText.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-            
-            // Buscar la disponibilidad para este taller
-            let available = 0;
-            
-            // Si el taller existe en WORKSHOP_NAMES
-            if (WORKSHOP_NAMES[originalText]) {
-              // Obtener la disponibilidad del objeto 'availability' (que ahora contiene números)
-              available = availability[originalText] !== undefined ? availability[originalText] : WORKSHOP_NAMES[originalText].capacity;
+            if (!cleanedKey) {
+              newChoices.push(choiceItem.createChoice(rawValue));
+              return;
             }
             
-            let newText;
-            if (available <= 0) {
-              newText = `${originalText} (COMPLETO)`;
+            if (!WORKSHOP_NAMES[cleanedKey]) {
+              newChoices.push(choiceItem.createChoice(cleanedKey));
+              console.log(`ℹ️ Opción preservada sin cambios: ${cleanedKey}`);
+              return;
+            }
+            
+            const workshopInfo = WORKSHOP_NAMES[cleanedKey];
+            const remaining = availability[cleanedKey] !== undefined ? availability[cleanedKey] : workshopInfo.capacity;
+            const normalizedRemaining = Math.max(0, Number(remaining) || 0);
+            
+            if (normalizedRemaining === 0) {
+              const unavailableText = `${cleanedKey} (COMPLETO - NO DISPONIBLE)`;
+              fullWorkshops.push(workshopInfo.name);
+              // Redirigir a reiniciar si alguien intenta seleccionarlo (para bloquear la inscripción)
+              newChoices.push(choiceItem.createChoice(unavailableText, FormApp.PageNavigationType.RESTART));
+              console.log(`🚫 Marcado como completo: ${cleanedKey}`);
             } else {
-              newText = `${originalText} (${available} plazas disponibles)`;
+              const availableText = `${cleanedKey} (${normalizedRemaining} plazas disponibles)`;
+              newChoices.push(choiceItem.createChoice(availableText));
+              console.log(`🔄 Actualizado: ${cleanedKey} -> ${normalizedRemaining} plazas`);
             }
-            
-            newChoices.push(choiceItem.createChoice(newText));
-            console.log(`🔄 Actualizado: ${originalText} -> ${available} plazas`);
           });
           
           choiceItem.setChoices(newChoices);
+          
+          if (fullWorkshops.length > 0) {
+            const helpMessage = `Talleres completos (no disponibles):\n${fullWorkshops.map(name => `• ${name}`).join("\n")}\n\nSi necesitas plaza, revisa periódicamente por si se liberan plazas.`;
+            choiceItem.setHelpText(helpMessage);
+          } else {
+            choiceItem.setHelpText("");
+          }
+          
           console.log(`✅ Opciones actualizadas para: ${title}`);
         }
       }
@@ -270,7 +355,7 @@ function checkWorkshopAvailability() {
       const row = data[i];
       const estado = row[10]; // Columna K (índice 10) - Estado
       
-      if (estado === 'Confirmado') {
+      if (estado === STATUS_CONFIRMED) {
         confirmadas++;
         const taller1 = row[7]; // Columna H (índice 7) - 1ª Sesión
         const taller2 = row[8]; // Columna I (índice 8) - 2ª Sesión
@@ -278,8 +363,8 @@ function checkWorkshopAvailability() {
         console.log(`📝 Fila ${i}: ${taller1}, ${taller2}, Estado: ${estado}`);
         
         // Limpiar nombres de talleres (eliminar texto de disponibilidad)
-        let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-        let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+        let cleanTaller1 = cleanWorkshopValue(taller1);
+        let cleanTaller2 = cleanWorkshopValue(taller2);
         
         console.log(`🧹 Talleres limpios: "${cleanTaller1}", "${cleanTaller2}"`);
         
@@ -288,14 +373,18 @@ function checkWorkshopAvailability() {
           availability[cleanTaller1] = Math.max(0, availability[cleanTaller1] - 1);
           console.log(`📉 Descontada 1 plaza de ${cleanTaller1}. Quedan: ${availability[cleanTaller1]}`);
         } else {
-          console.log(`⚠️ Taller 1 no encontrado en mapeo: "${cleanTaller1}"`);
+          if (isWorkshopSelected(cleanTaller1)) {
+            console.log(`⚠️ Taller 1 no encontrado en mapeo: "${cleanTaller1}"`);
+          }
         }
         
         if (WORKSHOP_NAMES[cleanTaller2]) {
           availability[cleanTaller2] = Math.max(0, availability[cleanTaller2] - 1);
           console.log(`📉 Descontada 1 plaza de ${cleanTaller2}. Quedan: ${availability[cleanTaller2]}`);
         } else {
-          console.log(`⚠️ Taller 2 no encontrado en mapeo: "${cleanTaller2}"`);
+          if (isWorkshopSelected(cleanTaller2)) {
+            console.log(`⚠️ Taller 2 no encontrado en mapeo: "${cleanTaller2}"`);
+          }
         }
       }
     }
@@ -314,8 +403,8 @@ function checkWorkshopAvailability() {
 // Verificar si hay plazas disponibles para los talleres seleccionados (CORREGIDA)
 function checkAvailability(taller1, taller2, availability) {
   // Limpiar los nombres de talleres (eliminar texto de disponibilidad)
-  let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-  let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+  let cleanTaller1 = cleanWorkshopValue(taller1);
+  let cleanTaller2 = cleanWorkshopValue(taller2);
   
   console.log(`🧹 Taller 1 limpio: "${cleanTaller1}"`);
   console.log(`🧹 Taller 2 limpio: "${cleanTaller2}"`);
@@ -328,18 +417,38 @@ function checkAvailability(taller1, taller2, availability) {
   return available1 > 0 && available2 > 0;
 }
 
+// Verificar disponibilidad para un solo taller (NUEVA FUNCIÓN)
+function checkSingleWorkshopAvailability(taller, availability) {
+  if (!isWorkshopSelected(taller)) {
+    console.log("ℹ️ Taller no seleccionado, no se requiere verificación.");
+    return true;
+  }
+  // Limpiar el nombre del taller (eliminar texto de disponibilidad)
+  let cleanTaller = cleanWorkshopValue(taller);
+  
+  console.log(`🧹 Taller único limpio: "${cleanTaller}"`);
+  
+  // Verificar disponibilidad
+  let available = WORKSHOP_NAMES[cleanTaller] ? availability[cleanTaller] : 0;
+  
+  console.log(`🔍 Verificando disponibilidad de taller único: ${cleanTaller} (${available} plazas)`);
+  return available > 0;
+}
+
 // Confirmar inscripción
 function confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, taller2) {
   const sheet = SpreadsheetApp.getActiveSheet();
   const lastRow = sheet.getLastRow();
+  const safeTaller1 = normalizeWorkshopSelection(taller1);
+  const safeTaller2 = normalizeWorkshopSelection(taller2);
   
   // Actualizar estado a "Confirmado" (columna K) y Fecha de inscripción (columna L)
-  sheet.getRange(lastRow, 11).setValue('Confirmado');
+  sheet.getRange(lastRow, 11).setValue(STATUS_CONFIRMED);
   sheet.getRange(lastRow, 12).setValue(new Date());
   
   // Enviar email de confirmación
   const subject = "CONFIRMACION DE INSCRIPCION - XIV Foro de Innovación Educativa";
-  const body = createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2);
+  const body = createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2);
   MailApp.sendEmail({
     to: email,
     subject: subject,
@@ -350,7 +459,7 @@ function confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, 
   
   // Notificar al administrador
   const adminSubject = `NUEVA INSCRIPCION CONFIRMADA: ${nombre} ${apellidos}`;
-  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2, "Confirmado", email);
+  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2, STATUS_CONFIRMED, email);
   MailApp.sendEmail({
     to: ADMIN_EMAIL,
     subject: adminSubject,
@@ -366,14 +475,16 @@ function confirmRegistration(email, nombre, apellidos, meInscriboComo, taller1, 
 function addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller2) {
   const sheet = SpreadsheetApp.getActiveSheet();
   const lastRow = sheet.getLastRow();
+  const safeTaller1 = normalizeWorkshopSelection(taller1);
+  const safeTaller2 = normalizeWorkshopSelection(taller2);
   
   // Actualizar estado a "Lista de Espera" (columna K) y Fecha de inscripción (columna L)
-  sheet.getRange(lastRow, 11).setValue('Lista de Espera');
+  sheet.getRange(lastRow, 11).setValue(STATUS_WAITLIST);
   sheet.getRange(lastRow, 12).setValue(new Date());
   
   // Enviar email de lista de espera
   const subject = "LISTA DE ESPERA - XIV Foro de Innovación Educativa";
-  const body = createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2);
+  const body = createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2);
   MailApp.sendEmail({
     to: email,
     subject: subject,
@@ -384,7 +495,7 @@ function addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller
   
   // Notificar al administrador
   const adminSubject = `NUEVA INSCRIPCION EN LISTA DE ESPERA: ${nombre} ${apellidos}`;
-  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2, "Lista de Espera", email);
+  const adminBody = createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, safeTaller1, safeTaller2, STATUS_WAITLIST, email);
   MailApp.sendEmail({
     to: ADMIN_EMAIL,
     subject: adminSubject,
@@ -396,201 +507,48 @@ function addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller
   console.log(`⏳ Inscripción de ${nombre} ${apellidos} añadida a lista de espera.`);
 }
 
-// --- Funciones para crear los cuerpos de los emails (CON IDENTIDAD CORPORATIVA) ---
-
-// --- Funciones para crear los cuerpos de los emails (CON IDENTIDAD CORPORATIVA E INFORMACIÓN DE PRESENTADORES) ---
+// --- Funciones para crear los cuerpos de los emails (SIN EMOJIS) ---
 
 function createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2) {
-  // Limpiar los nombres de talleres para buscar en WORKSHOP_NAMES
-  let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-  let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-
-  // Obtener información detallada de los talleres
-  const workshop1Info = getWorkshopDetails(cleanTaller1);
-  const workshop2Info = getWorkshopDetails(cleanTaller2);
+  const displayTaller1 = getWorkshopDisplayName(taller1);
+  const displayTaller2 = getWorkshopDisplayName(taller2);
 
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Confirmación de Inscripción - XIV Foro de Innovación Educativa</title>
+      <title>Confirmación de Inscripción</title>
       <style>
-        body { 
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-          line-height: 1.6; 
-          color: #1a1a1a; 
-          margin: 0; 
-          padding: 0; 
-          background: linear-gradient(135deg, rgba(128,24,54,0.03) 0%, rgba(106,20,48,0.03) 100%);
-        }
-        .container { 
-          max-width: 600px; 
-          margin: 20px auto; 
-          padding: 0; 
-          border-radius: 16px; 
-          overflow: hidden;
-          box-shadow: 0 8px 32px rgba(128,24,54,0.15);
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(15px);
-        }
-        .header { 
-          background: linear-gradient(135deg, #801836 0%, #6a1430 100%); 
-          color: white; 
-          padding: 30px 20px; 
-          text-align: center; 
-          position: relative;
-          overflow: hidden;
-        }
-        .header::before {
-          content: '';
-          position: absolute;
-          top: -50px;
-          right: -50px;
-          width: 100px;
-          height: 100px;
-          background: rgba(255,255,255,0.1);
-          border-radius: 50%;
-          transform: rotate(45deg);
-        }
-        .header h2 {
-          margin: 0;
-          font-size: 1.4rem;
-          font-weight: 800;
-          position: relative;
-          z-index: 2;
-        }
-        .content { 
-          padding: 30px; 
-          background: rgba(255,255,255,0.9);
-        }
-        .footer { 
-          text-align: center; 
-          font-size: 0.8rem; 
-          color: #666666; 
-          margin-top: 20px; 
-          padding: 20px;
-          background: rgba(247,245,246,0.8);
-          border-top: 1px solid rgba(128,24,54,0.1);
-        }
-        .workshop-list { 
-          list-style-type: none; 
-          padding: 0; 
-          margin: 20px 0;
-        }
-        .workshop-item { 
-          background: rgba(128,24,54,0.05); 
-          margin-bottom: 16px; 
-          padding: 20px; 
-          border-left: 4px solid #801836; 
-          border-radius: 8px;
-          transition: all 0.3s ease;
-        }
-        .workshop-item:hover {
-          background: rgba(128,24,54,0.08);
-          transform: translateX(5px);
-        }
-        .workshop-title {
-          font-weight: 700;
-          color: #801836;
-          font-size: 1rem;
-          margin-bottom: 8px;
-        }
-        .workshop-presenter {
-          color: #666666;
-          font-size: 0.9rem;
-          margin-bottom: 4px;
-        }
-        .workshop-institution {
-          color: #801836;
-          font-size: 0.85rem;
-          font-weight: 600;
-          font-style: italic;
-        }
-        .highlight {
-          color: #801836;
-          font-weight: 700;
-        }
-        .badge {
-          display: inline-block;
-          background: linear-gradient(135deg, #801836 0%, #6a1430 100%);
-          color: white;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          margin: 5px 0;
-        }
-        .logo-section {
-          text-align: center;
-          margin: 20px 0;
-          padding: 20px;
-          background: rgba(128,24,54,0.05);
-          border-radius: 12px;
-        }
-        .logo-text {
-          color: #801836;
-          font-weight: 800;
-          font-size: 1.1rem;
-          margin: 0;
-        }
-        .subtitle {
-          color: #666666;
-          font-size: 0.9rem;
-          margin: 5px 0 0 0;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .header { background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; }
+        .footer { text-align: center; font-size: 0.8em; color: #777; margin-top: 20px; }
+        .workshop-list { list-style-type: none; padding: 0; }
+        .workshop-list li { background-color: #f9f9f9; margin-bottom: 5px; padding: 10px; border-left: 5px solid #4CAF50; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h2>✓ CONFIRMACIÓN DE INSCRIPCIÓN</h2>
+          <h2>CONFIRMACION DE INSCRIPCION</h2>
         </div>
         <div class="content">
-          <p>Estimado/a <strong class="highlight">${nombre} ${apellidos}</strong>,</p>
-          
-          <div class="logo-section">
-            <p class="logo-text">XIV Foro de Innovación Educativa</p>
-            <p class="subtitle">HUMANIA · Desafío educativo</p>
-          </div>
-          
-          <p>¡Tu inscripción ha sido <strong class="highlight">confirmada con éxito</strong>!</p>
-          
-          <div class="badge">Te inscribes como: ${meInscriboComo}</div>
-          
-          <p><strong>Tus talleres seleccionados:</strong></p>
+          <p>Estimado/a <strong>${nombre} ${apellidos}</strong>,</p>
+          <p>¡Tu inscripción al <strong>XIV Foro de Innovación Educativa</strong> ha sido confirmada con éxito!</p>
+          <p>Te has inscrito como: <strong>${meInscriboComo}</strong></p>
+          <p>Tus talleres seleccionados son:</p>
           <ul class="workshop-list">
-            <li class="workshop-item">
-              <div class="workshop-title">1ª Sesión (17:30-18:15h)</div>
-              <div class="workshop-title">${workshop1Info.title}</div>
-              <div class="workshop-presenter">👤 ${workshop1Info.presenter}</div>
-              <div class="workshop-institution">🏢 ${workshop1Info.institution}</div>
-            </li>
-            <li class="workshop-item">
-              <div class="workshop-title">2ª Sesión (18:30-19:15h)</div>
-              <div class="workshop-title">${workshop2Info.title}</div>
-              <div class="workshop-presenter">👤 ${workshop2Info.presenter}</div>
-              <div class="workshop-institution">🏢 ${workshop2Info.institution}</div>
-            </li>
+            <li><strong>1ª Sesión:</strong> ${displayTaller1}</li>
+            <li><strong>2ª Sesión:</strong> ${displayTaller2}</li>
           </ul>
-          
-          <p style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #ffd700;">
-            <strong>📅 Fecha:</strong> 5 de noviembre de 2025<br>
-            <strong>🕔 Horario:</strong> 17:00-20:00h<br>
-            <strong>📍 Lugar:</strong> Santa María la Blanca, Madrid
-          </p>
-          
-          <p>¡Esperamos verte en este encuentro de innovación educativa!</p>
-          
-          <p>Atentamente,<br>
-          <strong>El equipo del XIV Foro de Innovación Educativa</strong><br>
-          <em>Colegio Santa María la Blanca</em></p>
+          <p>¡Esperamos verte allí!</p>
+          <p>Atentamente,</p>
+          <p>El equipo del XIV Foro de Innovación Educativa</p>
         </div>
         <div class="footer">
-          <p>Este es un mensaje automático. Por favor, no respondas a este correo.</p>
-          <p style="margin-top: 10px; font-size: 0.75rem; opacity: 0.8;">
-            Departamento de Innovación Educativa · Santa María la Blanca
-          </p>
+          <p>Este es un mensaje automático, por favor no respondas a este correo.</p>
         </div>
       </div>
     </body>
@@ -599,206 +557,47 @@ function createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1,
 }
 
 function createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2) {
-  // Limpiar los nombres de talleres para buscar en WORKSHOP_NAMES
-  let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-  let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-
-  // Obtener información detallada de los talleres
-  const workshop1Info = getWorkshopDetails(cleanTaller1);
-  const workshop2Info = getWorkshopDetails(cleanTaller2);
+  const displayTaller1 = getWorkshopDisplayName(taller1);
+  const displayTaller2 = getWorkshopDisplayName(taller2);
 
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Lista de Espera - XIV Foro de Innovación Educativa</title>
+      <title>Inscripción en Lista de Espera</title>
       <style>
-        body { 
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-          line-height: 1.6; 
-          color: #1a1a1a; 
-          margin: 0; 
-          padding: 0; 
-          background: linear-gradient(135deg, rgba(255,193,7,0.03) 0%, rgba(255,152,0,0.03) 100%);
-        }
-        .container { 
-          max-width: 600px; 
-          margin: 20px auto; 
-          padding: 0; 
-          border-radius: 16px; 
-          overflow: hidden;
-          box-shadow: 0 8px 32px rgba(255,193,7,0.15);
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(15px);
-        }
-        .header { 
-          background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%); 
-          color: #801836; 
-          padding: 30px 20px; 
-          text-align: center; 
-          position: relative;
-          overflow: hidden;
-        }
-        .header::before {
-          content: '';
-          position: absolute;
-          top: -50px;
-          right: -50px;
-          width: 100px;
-          height: 100px;
-          background: rgba(128,24,54,0.1);
-          border-radius: 50%;
-          transform: rotate(45deg);
-        }
-        .header h2 {
-          margin: 0;
-          font-size: 1.4rem;
-          font-weight: 800;
-          position: relative;
-          z-index: 2;
-        }
-        .content { 
-          padding: 30px; 
-          background: rgba(255,255,255,0.9);
-        }
-        .footer { 
-          text-align: center; 
-          font-size: 0.8rem; 
-          color: #666666; 
-          margin-top: 20px; 
-          padding: 20px;
-          background: rgba(255,243,205,0.8);
-          border-top: 1px solid rgba(255,193,7,0.2);
-        }
-        .workshop-list { 
-          list-style-type: none; 
-          padding: 0; 
-          margin: 20px 0;
-        }
-        .workshop-item { 
-          background: rgba(255,193,7,0.1); 
-          margin-bottom: 16px; 
-          padding: 20px; 
-          border-left: 4px solid #ffd700; 
-          border-radius: 8px;
-          transition: all 0.3s ease;
-        }
-        .workshop-item:hover {
-          background: rgba(255,193,7,0.15);
-          transform: translateX(5px);
-        }
-        .workshop-title {
-          font-weight: 700;
-          color: #801836;
-          font-size: 1rem;
-          margin-bottom: 8px;
-        }
-        .workshop-presenter {
-          color: #666666;
-          font-size: 0.9rem;
-          margin-bottom: 4px;
-        }
-        .workshop-institution {
-          color: #801836;
-          font-size: 0.85rem;
-          font-weight: 600;
-          font-style: italic;
-        }
-        .highlight {
-          color: #801836;
-          font-weight: 700;
-        }
-        .badge {
-          display: inline-block;
-          background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
-          color: #801836;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          margin: 5px 0;
-        }
-        .logo-section {
-          text-align: center;
-          margin: 20px 0;
-          padding: 20px;
-          background: rgba(255,193,7,0.1);
-          border-radius: 12px;
-        }
-        .logo-text {
-          color: #801836;
-          font-weight: 800;
-          font-size: 1.1rem;
-          margin: 0;
-        }
-        .subtitle {
-          color: #666666;
-          font-size: 0.9rem;
-          margin: 5px 0 0 0;
-        }
-        .waitlist-notice {
-          background: rgba(255,193,7,0.1);
-          padding: 20px;
-          border-radius: 12px;
-          border-left: 4px solid #ffd700;
-          margin: 20px 0;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .header { background-color: #FFC107; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; }
+        .footer { text-align: center; font-size: 0.8em; color: #777; margin-top: 20px; }
+        .workshop-list { list-style-type: none; padding: 0; }
+        .workshop-list li { background-color: #fff3cd; margin-bottom: 5px; padding: 10px; border-left: 5px solid #FFC107; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h2>⏳ LISTA DE ESPERA</h2>
+          <h2>LISTA DE ESPERA</h2>
         </div>
         <div class="content">
-          <p>Estimado/a <strong class="highlight">${nombre} ${apellidos}</strong>,</p>
-          
-          <div class="logo-section">
-            <p class="logo-text">XIV Foro de Innovación Educativa</p>
-            <p class="subtitle">HUMANIA · Desafío educativo</p>
-          </div>
-          
-          <div class="waitlist-notice">
-            <p><strong>Hemos recibido tu inscripción</strong>, pero actualmente los talleres que has seleccionado están completos.</p>
-            <p>Te hemos añadido a nuestra <strong>lista de espera</strong> y te notificaremos inmediatamente si se libera alguna plaza.</p>
-          </div>
-          
-          <div class="badge">Te inscribes como: ${meInscriboComo}</div>
-          
-          <p><strong>Tus talleres seleccionados:</strong></p>
+          <p>Estimado/a <strong>${nombre} ${apellidos}</strong>,</p>
+          <p>Hemos recibido tu inscripción al <strong>XIV Foro de Innovación Educativa</strong>.</p>
+          <p>Actualmente, los talleres que has seleccionado están completos, por lo que te hemos añadido a la lista de espera.</p>
+          <p>Te has inscrito como: <strong>${meInscriboComo}</strong></p>
+          <p>Tus talleres seleccionados son:</p>
           <ul class="workshop-list">
-            <li class="workshop-item">
-              <div class="workshop-title">1ª Sesión (17:30-18:15h)</div>
-              <div class="workshop-title">${workshop1Info.title}</div>
-              <div class="workshop-presenter">👤 ${workshop1Info.presenter}</div>
-              <div class="workshop-institution">🏢 ${workshop1Info.institution}</div>
-            </li>
-            <li class="workshop-item">
-              <div class="workshop-title">2ª Sesión (18:30-19:15h)</div>
-              <div class="workshop-title">${workshop2Info.title}</div>
-              <div class="workshop-presenter">👤 ${workshop2Info.presenter}</div>
-              <div class="workshop-institution">🏢 ${workshop2Info.institution}</div>
-            </li>
+            <li><strong>1ª Sesión:</strong> ${displayTaller1}</li>
+            <li><strong>2ª Sesión:</strong> ${displayTaller2}</li>
           </ul>
-          
-          <p style="background: rgba(128,24,54,0.05); padding: 15px; border-radius: 8px; border-left: 4px solid #801836;">
-            <strong>📅 Fecha:</strong> 5 de noviembre de 2025<br>
-            <strong>🕔 Horario:</strong> 17:00-20:00h<br>
-            <strong>📍 Lugar:</strong> Santa María la Blanca, Madrid
-          </p>
-          
-          <p>¡Gracias por tu interés en la innovación educativa!</p>
-          
-          <p>Atentamente,<br>
-          <strong>El equipo del XIV Foro de Innovación Educativa</strong><br>
-          <em>Colegio Santa María la Blanca</em></p>
+          <p>Si se libera alguna plaza, te notificaremos inmediatamente.</p>
+          <p>¡Gracias por tu interés!</p>
+          <p>Atentamente,</p>
+          <p>El equipo del XIV Foro de Innovación Educativa</p>
         </div>
         <div class="footer">
-          <p>Este es un mensaje automático. Por favor, no respondas a este correo.</p>
-          <p style="margin-top: 10px; font-size: 0.75rem; opacity: 0.8;">
-            Departamento de Innovación Educativa · Santa María la Blanca
-          </p>
+          <p>Este es un mensaje automático, por favor no respondas a este correo.</p>
         </div>
       </div>
     </body>
@@ -807,369 +606,67 @@ function createWaitlistEmailHTML(nombre, apellidos, meInscriboComo, taller1, tal
 }
 
 function createAdminNotificationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2, status, email) {
-  const availability = checkWorkshopAvailability();
+  const availability = checkWorkshopAvailability(); // Esto ahora devolverá números
   let availabilityDetails = '';
   Object.keys(WORKSHOP_NAMES).forEach(workshopKey => {
+    // CORREGIDO: Acceder a la capacidad desde WORKSHOP_NAMES y a las restantes desde availability
     const totalCapacity = WORKSHOP_NAMES[workshopKey].capacity;
     const remaining = availability[workshopKey] !== undefined ? availability[workshopKey] : totalCapacity;
-    const occupied = totalCapacity - remaining;
-    const percentage = Math.round((occupied / totalCapacity) * 100);
-    
-    let statusColor = '#801836';
-    let statusText = 'Disponible';
-    if (remaining === 0) {
-      statusColor = '#dc3545';
-      statusText = 'COMPLETO';
-    } else if (remaining <= totalCapacity * 0.2) {
-      statusColor = '#ffd700';
-      statusText = 'Pocas plazas';
-    }
-    
-    availabilityDetails += `
-      <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(128,24,54,0.1);">
-        <span><strong>${WORKSHOP_NAMES[workshopKey].name}</strong></span>
-        <span style="color: ${statusColor}; font-weight: 600;">${remaining}/${totalCapacity} (${percentage}%)</span>
-      </li>`;
+    availabilityDetails += `<li><strong>${WORKSHOP_NAMES[workshopKey].name}:</strong> ${remaining} plazas restantes (de ${totalCapacity})</li>`;
   });
 
   // Limpiar los nombres de talleres para buscar en WORKSHOP_NAMES
-  let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-  let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-
-  // Obtener información detallada de los talleres
-  const workshop1Info = getWorkshopDetails(cleanTaller1);
-  const workshop2Info = getWorkshopDetails(cleanTaller2);
-
-  const headerColor = status === 'Confirmado' ? 'linear-gradient(135deg, #801836 0%, #6a1430 100%)' : 'linear-gradient(135deg, #ffd700 0%, #ffb300 100%)';
-  const textColor = status === 'Confirmado' ? 'white' : '#801836';
-  const accentColor = status === 'Confirmado' ? '#801836' : '#ffd700';
+  const displayTaller1 = getWorkshopDisplayName(taller1);
+  const displayTaller2 = getWorkshopDisplayName(taller2);
 
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Notificación Administrador - XIV Foro de Innovación Educativa</title>
+      <title>Notificación de Inscripción</title>
       <style>
-        body { 
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-          line-height: 1.6; 
-          color: #1a1a1a; 
-          margin: 0; 
-          padding: 0; 
-          background: linear-gradient(135deg, rgba(128,24,54,0.03) 0%, rgba(106,20,48,0.03) 100%);
-        }
-        .container { 
-          max-width: 700px; 
-          margin: 20px auto; 
-          padding: 0; 
-          border-radius: 16px; 
-          overflow: hidden;
-          box-shadow: 0 8px 32px rgba(128,24,54,0.15);
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(15px);
-        }
-        .header { 
-          background: ${headerColor}; 
-          color: ${textColor}; 
-          padding: 30px 20px; 
-          text-align: center; 
-          position: relative;
-          overflow: hidden;
-        }
-        .header::before {
-          content: '';
-          position: absolute;
-          top: -50px;
-          right: -50px;
-          width: 100px;
-          height: 100px;
-          background: rgba(255,255,255,0.1);
-          border-radius: 50%;
-          transform: rotate(45deg);
-        }
-        .header h2 {
-          margin: 0;
-          font-size: 1.4rem;
-          font-weight: 800;
-          position: relative;
-          z-index: 2;
-        }
-        .content { 
-          padding: 30px; 
-          background: rgba(255,255,255,0.9);
-        }
-        .footer { 
-          text-align: center; 
-          font-size: 0.8rem; 
-          color: #666666; 
-          margin-top: 20px; 
-          padding: 20px;
-          background: rgba(247,245,246,0.8);
-          border-top: 1px solid rgba(128,24,54,0.1);
-        }
-        .workshop-list { 
-          list-style-type: none; 
-          padding: 0; 
-          margin: 20px 0;
-        }
-        .workshop-item { 
-          background: rgba(128,24,54,0.05); 
-          margin-bottom: 16px; 
-          padding: 20px; 
-          border-left: 4px solid ${accentColor}; 
-          border-radius: 8px;
-        }
-        .workshop-title {
-          font-weight: 700;
-          color: #801836;
-          font-size: 1rem;
-          margin-bottom: 8px;
-        }
-        .workshop-presenter {
-          color: #666666;
-          font-size: 0.9rem;
-          margin-bottom: 4px;
-        }
-        .workshop-institution {
-          color: #801836;
-          font-size: 0.85rem;
-          font-weight: 600;
-          font-style: italic;
-        }
-        .availability-list { 
-          list-style-type: none; 
-          padding: 0; 
-          border-top: 2px solid rgba(128,24,54,0.1); 
-          margin-top: 30px; 
-          padding-top: 20px;
-          background: rgba(128,24,54,0.02);
-          border-radius: 8px;
-          padding: 20px;
-        }
-        .availability-list li { 
-          margin-bottom: 8px; 
-        }
-        .highlight {
-          color: #801836;
-          font-weight: 700;
-        }
-        .status-badge {
-          display: inline-block;
-          background: ${accentColor};
-          color: ${status === 'Confirmado' ? 'white' : '#801836'};
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          margin: 5px 0;
-        }
-        .admin-info {
-          background: rgba(128,24,54,0.05);
-          padding: 20px;
-          border-radius: 12px;
-          border-left: 4px solid #801836;
-          margin: 20px 0;
-        }
-        .summary-stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 15px;
-          margin: 20px 0;
-        }
-        .stat-card {
-          background: rgba(128,24,54,0.05);
-          padding: 15px;
-          border-radius: 8px;
-          text-align: center;
-          border-left: 4px solid #801836;
-        }
-        .stat-number {
-          font-size: 1.5rem;
-          font-weight: 800;
-          color: #801836;
-          display: block;
-        }
-        .stat-label {
-          font-size: 0.8rem;
-          color: #666666;
-          margin-top: 5px;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .header { background-color: ${status === STATUS_CONFIRMED ? '#4CAF50' : '#FFC107'}; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px; }
+        .footer { text-align: center; font-size: 0.8em; color: #777; margin-top: 20px; }
+        .workshop-list { list-style-type: none; padding: 0; }
+        .workshop-list li { background-color: #f9f9f9; margin-bottom: 5px; padding: 10px; border-left: 5px solid ${status === STATUS_CONFIRMED ? '#4CAF50' : '#FFC107'}; }
+        .availability-list { list-style-type: none; padding: 0; border-top: 1px solid #eee; margin-top: 20px; padding-top: 10px;}
+        .availability-list li { margin-bottom: 3px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h2>${status === 'Confirmado' ? '✓ NUEVA INSCRIPCIÓN CONFIRMADA' : '⏳ NUEVA INSCRIPCIÓN EN LISTA DE ESPERA'}</h2>
+          <h2>${status === STATUS_CONFIRMED ? 'NUEVA INSCRIPCION CONFIRMADA' : 'NUEVA INSCRIPCION EN LISTA DE ESPERA'}</h2>
         </div>
         <div class="content">
-          <div class="admin-info">
-            <h3 style="margin-top: 0; color: #801836;">📋 Datos del participante</h3>
-            <ul style="list-style: none; padding: 0;">
+          <p>Se ha registrado una nueva inscripción:</p>
+          <ul>
               <li><strong>Nombre:</strong> ${nombre} ${apellidos}</li>
               <li><strong>Email:</strong> ${email}</li>
               <li><strong>Se inscribe como:</strong> ${meInscriboComo}</li>
-              <li><strong>Estado:</strong> <span class="status-badge">${status}</span></li>
+            <li><strong>Estado:</strong> <strong>${status}</strong></li>
             </ul>
-          </div>
-          
-          <p><strong>Talleres seleccionados:</strong></p>
+          <p>Talleres seleccionados:</p>
           <ul class="workshop-list">
-            <li class="workshop-item">
-              <div class="workshop-title">1ª Sesión (17:30-18:15h)</div>
-              <div class="workshop-title">${workshop1Info.title}</div>
-              <div class="workshop-presenter">👤 ${workshop1Info.presenter}</div>
-              <div class="workshop-institution">🏢 ${workshop1Info.institution}</div>
-            </li>
-            <li class="workshop-item">
-              <div class="workshop-title">2ª Sesión (18:30-19:15h)</div>
-              <div class="workshop-title">${workshop2Info.title}</div>
-              <div class="workshop-presenter">👤 ${workshop2Info.presenter}</div>
-              <div class="workshop-institution">🏢 ${workshop2Info.institution}</div>
-            </li>
+            <li><strong>1ª Sesión:</strong> ${displayTaller1}</li>
+            <li><strong>2ª Sesión:</strong> ${displayTaller2}</li>
           </ul>
-          
-          <h3 style="color: #801836; border-bottom: 2px solid #801836; padding-bottom: 10px;">📊 RESUMEN DE PLAZAS ACTUAL</h3>
+          <h3>RESUMEN DE PLAZAS ACTUAL:</h3>
           <ul class="availability-list">
             ${availabilityDetails}
           </ul>
-          
-          <div class="summary-stats">
-            <div class="stat-card">
-              <span class="stat-number">${Object.keys(WORKSHOP_NAMES).length}</span>
-              <div class="stat-label">Total Talleres</div>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number">${Object.values(availability).reduce((sum, val) => sum + val, 0)}</span>
-              <div class="stat-label">Plazas Disponibles</div>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number">${Object.values(WORKSHOP_NAMES).reduce((sum, val) => sum + val.capacity, 0) - Object.values(availability).reduce((sum, val) => sum + val, 0)}</span>
-              <div class="stat-label">Plazas Ocupadas</div>
-            </div>
-          </div>
         </div>
         <div class="footer">
-          <p>Notificación automática del sistema de inscripciones</p>
-          <p style="margin-top: 10px; font-size: 0.75rem; opacity: 0.8;">
-            Departamento de Innovación Educativa · Santa María la Blanca
-          </p>
+          <p>Este es un mensaje automático.</p>
         </div>
       </div>
     </body>
     </html>
   `;
-}
-
-// Función auxiliar para obtener detalles de los talleres
-function getWorkshopDetails(workshopName) {
-  // Mapeo completo de talleres con información detallada extraída de talleres.html
-  const workshopDetails = {
-    "1. Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula Instituto Artes Escénicas": {
-      title: "Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula",
-      presenter: "Instituto Artes Escénicas",
-      institution: "Instituto Artes Escénicas"
-    },
-    "2. Matemáticas creativas en Educación Primaria Irene López, Cristina Bezón y Beatriz Hernández Santa María la Blanca": {
-      title: "Matemáticas creativas en Educación Primaria",
-      presenter: "Irene López, Cristina Bezón y Beatriz Hernández",
-      institution: "Santa María la Blanca"
-    },
-    "3. Matemáticas competenciales en Secundaria Manuel Llorens Santa María la Blanca": {
-      title: "Matemáticas competenciales en Secundaria",
-      presenter: "Manuel Llorens",
-      institution: "Santa María la Blanca"
-    },
-    "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca": {
-      title: "AyudIA! – La Inteligencia Artificial como compañera de aprendizaje",
-      presenter: "Equipo de Inteligencia Artificial",
-      institution: "Santa María la Blanca"
-    },
-    "5. Innovación social: crea, actúa y cambia el mundo Luis Miguel Olivas Fundación Iruaritz Lezama": {
-      title: "Innovación social: crea, actúa y cambia el mundo",
-      presenter: "Luis Miguel Olivas",
-      institution: "Fundación Iruaritz Lezama"
-    },
-    "6. Crecer sin alas prestadas Equipo de Acompañate Santa María la Blanca": {
-      title: "Crecer sin alas prestadas",
-      presenter: "Equipo de Acompañate",
-      institution: "Santa María la Blanca"
-    },
-    "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer": {
-      title: "Claves para cultivar tu salud. Tu vida está en tus manos.",
-      presenter: "Elisabeth Arrojo",
-      institution: "INMOA y Centro Nacional Prevención Cáncer"
-    },
-    "8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense": {
-      title: "Metacognición. Una necesidad",
-      presenter: "Elías Domínguez",
-      institution: "Seminario Menor de Ourense"
-    },
-    "9. Inspira Talks: La escuela de los sentidos A) Pequeños grandes viajes sensoriales Ana Posada Santa María la Blanca B) Cuerpo que juega, mente que aprende Lorena Gómez Santa María la Blanca": {
-      title: "Inspira Talks: La escuela de los sentidos",
-      presenter: "Ana Posada y Lorena Gómez",
-      institution: "Santa María la Blanca"
-    },
-    "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca": {
-      title: "GameLab inclusivo: del aula al juego",
-      presenter: "Raquel Cuesta",
-      institution: "Santa María la Blanca"
-    },
-    "11. Godly Play: «Jugando con Dios» Equipo Godly Play Santa María la Blanca": {
-      title: "Godly Play: «Jugando con Dios»",
-      presenter: "Equipo Godly Play",
-      institution: "Santa María la Blanca"
-    },
-    "12. Copilot Chat en el aula: cómo multiplicar el potencial docente con IA Felipe García Gaitero Universidad Europea": {
-      title: "Copilot Chat en el aula: cómo multiplicar el potencial docente con IA",
-      presenter: "Felipe García Gaitero",
-      institution: "Universidad Europea"
-    },
-    "13. IA para mentes que enseñan Antonio Julio López Universidad Rey Juan Carlos": {
-      title: "IA para mentes que enseñan",
-      presenter: "Antonio Julio López",
-      institution: "Universidad Rey Juan Carlos"
-    },
-    "14. Más allá del marcador: deporte, valores y emociones Jose Javier Illana illanactiva": {
-      title: "Más allá del marcador: deporte, valores y emociones",
-      presenter: "Jose Javier Illana",
-      institution: "illanactiva"
-    },
-    "15. Networking y Comunicación Estratégica en la Escuela y en la Vida Lucila Ballarino ConexIA": {
-      title: "Networking y Comunicación Estratégica en la Escuela y en la Vida",
-      presenter: "Lucila Ballarino",
-      institution: "ConexIA"
-    },
-    "16. Palabras que construyen: herramientas para transformar el conflicto en conexión con los adolescentes Ana López e Iranzu Arellano Santa María la Blanca": {
-      title: "Palabras que construyen: herramientas para transformar el conflicto en conexión con los adolescentes",
-      presenter: "Ana López e Iranzu Arellano",
-      institution: "Santa María la Blanca"
-    },
-    "17. Inspira Talks: Humanizar la educación A) Transformación Digital e Innovación Educativa | IA Aplicada a la Educación Antonio Segura Marrero UNIR B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": {
-      title: "Inspira Talks: Humanizar la educación",
-      presenter: "Antonio Segura Marrero y Laura Corral",
-      institution: "UNIR e Iniciativa pacto de familia Montecarmelo"
-    },
-    "18. Inspira Talks: La emoción de acompañar A) Conciencia emocional: el punto de partida para educar Sara Hernández Cano Educandoatulado B) Cuidar, acompañar y educar Colegio San Ignacio de Loyola": {
-      title: "Inspira Talks: La emoción de acompañar",
-      presenter: "Sara Hernández Cano y Colegio San Ignacio de Loyola",
-      institution: "Educandoatulado y Colegio San Ignacio de Loyola"
-    }
-  };
-
-  // Buscar el taller por nombre exacto o parcial
-  for (const [key, details] of Object.entries(workshopDetails)) {
-    if (key.includes(workshopName) || workshopName.includes(key.split(':')[0])) {
-      return details;
-    }
-  }
-
-  // Si no se encuentra, devolver información básica
-  return {
-    title: workshopName,
-    presenter: "Información no disponible",
-    institution: "Información no disponible"
-  };
 }
 
 // Función para ejecutar manualmente la limpieza y actualización de opciones
@@ -1400,7 +897,7 @@ function diagnosticPlazas() {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const estado = row[10]; // Columna K (índice 10)
-      if (estado === 'Confirmado') {
+      if (estado === STATUS_CONFIRMED) {
         console.log(`   Fila ${i}: ${row[7]} + ${row[8]}`);
       }
     }
@@ -1611,7 +1108,7 @@ function diagnosticarDescuentoPlazas() {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const estado = row[10]; // Columna K (índice 10)
-      if (estado === 'Confirmado') {
+      if (estado === STATUS_CONFIRMED) {
         confirmadas++;
         console.log(`   Fila ${i}: ${row[7]} + ${row[8]} - Estado: ${estado}`);
       }
@@ -1696,5 +1193,118 @@ function probarDescuentoPlazas() {
     
   } catch (error) {
     console.error("❌ Error en prueba:", error);
+  }
+}
+
+// Función para probar el sistema completo sin trigger
+function probarSistemaCompleto() {
+  try {
+    console.log("🧪 Probando sistema completo...");
+    
+    // 1. Verificar estado actual
+    console.log("📊 Paso 1: Verificando estado actual...");
+    const availability = checkWorkshopAvailability();
+    console.log("📊 Disponibilidad actual:", availability);
+    
+    // 2. Mostrar talleres completos vs disponibles
+    console.log("📋 Paso 2: Resumen de talleres:");
+    console.log("❌ Talleres completos:");
+    Object.keys(availability).forEach(workshopKey => {
+      if (availability[workshopKey] <= 0) {
+        console.log(`   - ${WORKSHOP_NAMES[workshopKey].name}: ${availability[workshopKey]} plazas`);
+      }
+    });
+    
+    console.log("✅ Talleres disponibles:");
+    Object.keys(availability).forEach(workshopKey => {
+      if (availability[workshopKey] > 0) {
+        console.log(`   - ${WORKSHOP_NAMES[workshopKey].name}: ${availability[workshopKey]} plazas`);
+      }
+    });
+    
+    // 3. Limpiar formulario
+    console.log("🧹 Paso 3: Limpiando formulario...");
+    cleanFormOptions();
+    
+    // 4. Actualizar formulario
+    console.log("🔄 Paso 4: Actualizando formulario...");
+    updateFormOptions();
+    
+    console.log("✅ Prueba del sistema completada");
+    
+  } catch (error) {
+    console.error("❌ Error en prueba:", error);
+  }
+}
+
+// Función para simular una inscripción real (para testing)
+function simularInscripcionReal() {
+  try {
+    console.log("🧪 Simulando inscripción real...");
+    
+    // Simular datos reales del CSV
+    const testData = [
+      new Date(), // Marca temporal
+      "María", // Nombre
+      "García López", // Apellidos
+      "maria.garcia@ejemplo.com", // Email
+      "12345678X", // DNI
+      "Docente", // Me inscribo como
+      "Colegio de Prueba", // Institución
+      "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer", // Taller 1ª sesión
+      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca", // Taller 2ª sesión
+      "Sí", // Comunicación digital
+      "", // Estado (se llenará por el script)
+      ""  // Fecha de inscripción (se llenará por el script)
+    ];
+    
+    // Simular el evento del formulario
+    const mockEvent = {
+      values: testData
+    };
+    
+    // Llamar a onFormSubmit con el evento simulado
+    onFormSubmit(mockEvent);
+    
+    console.log("✅ Simulación de inscripción completada");
+    
+  } catch (error) {
+    console.error("❌ Error en simulación:", error);
+  }
+}
+
+// Función para probar el caso específico del error (solo taller2)
+function probarCasoErrorTaller2() {
+  try {
+    console.log("🧪 Probando caso específico del error (solo taller2)...");
+    
+    // Simular el caso exacto del error: solo taller2 seleccionado
+    const testData = [
+      new Date(), // Marca temporal
+      "uwejbfksd", // Nombre (del error)
+      "sdfsfs", // Apellidos (del error)
+      "raqelcb+prueba@gmail.com", // Email (del error)
+      "12345678X", // DNI
+      "Docente", // Me inscribo como
+      "Colegio de Prueba", // Institución
+      "", // Taller 1ª sesión (VACÍO - como en el error)
+      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca (9 plazas disponibles)", // Taller 2ª sesión (del error)
+      "Sí", // Comunicación digital
+      "", // Estado (se llenará por el script)
+      ""  // Fecha de inscripción (se llenará por el script)
+    ];
+    
+    // Simular el evento del formulario
+    const mockEvent = {
+      values: testData
+    };
+    
+    // Llamar a onFormSubmit con el evento simulado
+    onFormSubmit(mockEvent);
+    
+    console.log("✅ Prueba del caso específico completada");
+    
+  } catch (error) {
+    console.error("❌ Error en prueba del caso específico:", error);
   }
 }

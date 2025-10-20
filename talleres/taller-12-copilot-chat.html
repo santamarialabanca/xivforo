@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taller 12: Copilot Chat en el Aula - XIV Foro de Innovación Educativa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --granate: #801836;
+            --gris: #666666;
+            --bg: #fff;
+            --suave: #f7f5f6;
+            --accent: #ffd700;
+            --gradient: linear-gradient(135deg, var(--granate) 0%, #6a1430 100%);
+            --glass: rgba(255,255,255,0.1);
+            --shadow: 0 8px 32px rgba(128,24,54,0.1);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial;
+            color: #1a1a1a;
+            background: var(--bg);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Efectos de fondo dinámico */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(128,24,54,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(128,24,54,0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header-banner {
+            background: linear-gradient(135deg, var(--granate) 0%, #6a1430 100%);
+            color: white;
+            padding: 40px 0;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .header-banner::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: rotate(45deg);
+        }
+        
+        .header-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .header-content h1 {
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #ffffff 0%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .workshop-card {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(15px);
+            border: 2px solid #ffd700;
+            border-radius: var(--border-radius);
+            padding: 32px;
+            margin: 24px 0;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .workshop-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .workshop-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .workshop-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow);
+            background: rgba(255,255,255,0.95);
+            border-color: rgba(255,215,0,0.3);
+        }
+        
+        .workshop-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        
+        .workshop-card:hover .workshop-number {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(255,215,0,0.4);
+        }
+        
+        .workshop-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--granate);
+            margin: 0 0 16px 0;
+            line-height: 1.3;
+        }
+        
+        .workshop-presenter {
+            font-size: 1.1rem;
+            color: var(--gris);
+            margin: 0 0 8px 0;
+            font-weight: 500;
+        }
+        
+        .workshop-institution {
+            font-size: 1rem;
+            color: var(--granate);
+            font-weight: 600;
+            font-style: italic;
+            background: rgba(128,24,54,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+        
+        .workshop-schedule {
+            background: rgba(255,215,0,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #ffd700;
+            margin: 20px 0;
+        }
+        
+        .workshop-schedule h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--granate);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .workshop-description {
+            background: rgba(255,255,255,0.5);
+            padding: 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid var(--granate);
+        }
+        
+        .workshop-description h3 {
+            margin: 0 0 16px 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--granate);
+        }
+        
+        .workshop-description p {
+            margin: 0 0 12px 0;
+            color: var(--gris);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .workshop-description p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .cta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 25px 0 35px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            border-radius: var(--border-radius);
+            border: 2px solid var(--granate);
+            color: var(--granate);
+            font-weight: 800;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            transition: left 0.3s;
+            z-index: -1;
+        }
+        
+        .btn:hover::before {
+            left: 0;
+        }
+        
+        .btn:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: transparent;
+        }
+        
+        .btn.primary {
+            background: var(--gradient);
+            color: #fff;
+            border-color: transparent;
+        }
+        
+        .btn.primary:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+        
+        .tag {
+            display: inline-block;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            color: var(--granate);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            font-weight: 800;
+            letter-spacing: .3px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(128,24,54,0.1);
+            position: relative;
+            overflow: hidden;
+            margin: 0 8px 8px 0;
+        }
+        
+        .tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .tag:hover::before {
+            left: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .workshop-card {
+                padding: 24px;
+            }
+            
+            .workshop-title {
+                font-size: 1.5rem;
+            }
+            
+            .workshop-number {
+                width: 50px;
+                height: 50px;
+                font-size: 1rem;
+            }
+            
+            .cta {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Banner -->
+    <header class="header-banner">
+        <div class="header-content">
+            <h1>Taller 12: Copilot Chat en el Aula</h1>
+            <p class="subtitle">Cómo Multiplicar el Potencial Docente con IA</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="cta">
+            <span class="tag">2ª Sesión</span>
+            <span class="tag">18:30 - 19:15 h</span>
+            <span class="tag">Metodologías Innovadoras</span>
+            <a class="btn primary" href="https://forms.gle/L2FSdfhcUFnbJjPx8" target="_blank" rel="noopener">
+                <i class="fas fa-edit"></i>
+                Inscripción asistentes
+            </a>
+            <a class="btn" href="../talleres.html" rel="noopener">
+                <i class="fas fa-arrow-left"></i>
+                Volver a talleres
+            </a>
+            <a class="btn" href="../index.html" rel="noopener">
+                <i class="fas fa-home"></i>
+                Volver al inicio
+            </a>
+        </div>
+        
+        <div class="workshop-card">
+            <div class="workshop-number">12</div>
+            <h2 class="workshop-title">Copilot Chat en el aula: cómo multiplicar el potencial docente con IA</h2>
+            <p class="workshop-presenter">Felipe García Gaitero</p>
+            <span class="workshop-institution">Universidad Europea</span>
+            
+            <div class="workshop-schedule">
+                <h3><i class="fas fa-clock"></i> Información del Taller</h3>
+                <p><strong>Franja horaria:</strong> 2ª Sesión (18:30 - 19:15 h)</p>
+                <p><strong>Duración:</strong> 45 minutos</p>
+                <p><strong>Temática:</strong> Metodologías Innovadoras</p>
+            </div>
+            
+            <div class="workshop-description">
+                <h3><i class="fas fa-robot"></i> Descripción del Taller</h3>
+                <p>Este taller está diseñado para docentes de todas las etapas educativas que buscan aprender a utilizar Microsoft Copilot Chat como su asistente personal en el aula, multiplicando su eficiencia docente y mejorando la experiencia de aprendizaje de sus estudiantes.</p>
+                
+                <p>El taller se centra en la configuración y personalización de Copilot Chat para uso educativo, la creación de contenido educativo con asistencia de IA y la generación de actividades y evaluaciones adaptadas. Los participantes aprenderán a optimizar la gestión del tiempo docente e integrar la IA de forma ética y efectiva en el aula.</p>
+                
+                <p>Se trabajará especialmente en casos de uso prácticos como la creación de contenido (lecciones, actividades y materiales), evaluación (generación de preguntas y rúbricas), personalización (adaptación a diferentes niveles), investigación (búsqueda y síntesis de información) y comunicación (mejora de la comunicación educativa).</p>
+                
+                <p>El enfoque práctico del taller garantiza que los docentes puedan implementar inmediatamente las estrategias aprendidas, mejorando significativamente su eficiencia y calidad educativa, y manteniéndose actualizados con las últimas tecnologías de IA aplicadas a la educación.</p>
+            </div>
+            
+            <div class="workshop-description">
+                <h3><i class="fas fa-users"></i> Dirigido a</h3>
+                <p>Docentes de todas las etapas educativas</p>
+            </div>
+            
+            <div class="workshop-description">
+                <h3><i class="fas fa-star"></i> Beneficios del Taller</h3>
+                <ul>
+                    <li><strong>Configuración personalizada:</strong> Adaptación de Copilot Chat para uso educativo</li>
+                    <li><strong>Creación de contenido:</strong> Generación de materiales educativos con IA</li>
+                    <li><strong>Actividades adaptadas:</strong> Diseño de ejercicios personalizados</li>
+                    <li><strong>Gestión del tiempo:</strong> Optimización de la eficiencia docente</li>
+                    <li><strong>Integración ética:</strong> Uso responsable de la IA en educación</li>
+                    <li><strong>Actualización tecnológica:</strong> Competencias en IA educativa</li>
+                </ul>
+            </div>
+            
+            <div class="workshop-description">
+                <h3><i class="fas fa-lightbulb"></i> Aplicaciones Prácticas</h3>
+                <p>El taller cubrirá casos de uso como:</p>
+                <ul>
+                    <li><strong>Creación de contenido:</strong> Lecciones, actividades y materiales</li>
+                    <li><strong>Evaluación:</strong> Generación de preguntas y rúbricas</li>
+                    <li><strong>Personalización:</strong> Adaptación a diferentes niveles</li>
+                    <li><strong>Investigación:</strong> Búsqueda y síntesis de información</li>
+                    <li><strong>Comunicación:</strong> Mejora de la comunicación educativa</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
