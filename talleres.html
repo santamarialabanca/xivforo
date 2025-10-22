@@ -1358,14 +1358,6 @@
 			  this.style.transform = 'translateY(0) scale(1)';
 			}
 		  });
-		  
-		  // Prevenir el comportamiento por defecto del enlace cuando se hace clic en el filtro
-		  card.addEventListener('click', function(e) {
-			// Solo prevenir si el clic viene de un filtro activo
-			if (document.querySelector('.theme-card.active')) {
-			  e.preventDefault();
-			}
-		  });
 		});
 		
 	  });
