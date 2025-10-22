@@ -19,7 +19,7 @@ const WORKSHOP_NAMES = {
   },
   "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca": { 
     name: "AyudIA! – La Inteligencia Artificial como compañera", 
-    capacity: 26
+    capacity: 28
   },
   "5. Innovación social: crea, actúa y cambia el mundo Luis Miguel Olivas Fundación Iruaritz Lezama": { 
     name: "Innovación social: crea, actúa y cambia el mundo", 
@@ -267,7 +267,7 @@ function updateFormOptions() {
   }
 }
 
-// Función para verificar la disponibilidad de talleres (CORREGIDA)
+// Función para verificar la disponibilidad de talleres (CORREGIDA - SIN FILTRAR POR ESTADO)
 function checkWorkshopAvailability() {
   try {
     console.log("🔍 Verificando disponibilidad de talleres...");
@@ -275,51 +275,74 @@ function checkWorkshopAvailability() {
     const sheet = SpreadsheetApp.getActiveSheet();
     const data = sheet.getDataRange().getValues();
     
+    if (!data || data.length < 2) {
+      console.log("⚠️ Hoja sin datos de inscripciones");
+      const availabilityEmpty = {};
+      Object.keys(WORKSHOP_NAMES).forEach(t => availabilityEmpty[t] = WORKSHOP_NAMES[t].capacity);
+      return availabilityEmpty;
+    }
+    
+    // Buscar columnas por headers
+    const headers = data[0];
+    const colTaller1 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 17:30'));
+    const colTaller2 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 18:30'));
+    
+    if (colTaller1 === -1 || colTaller2 === -1) {
+      console.log("⚠️ No se encontraron columnas de talleres. Usando índices antiguos de respaldo.");
+    }
+    
     // Inicializar disponibilidad con las capacidades máximas
     const availability = {};
     Object.keys(WORKSHOP_NAMES).forEach(tallerKey => {
-      availability[tallerKey] = WORKSHOP_NAMES[tallerKey].capacity; // CORREGIDO: Acceder a .capacity
+      availability[tallerKey] = WORKSHOP_NAMES[tallerKey].capacity;
     });
     
     console.log("📊 Capacidades iniciales:", availability);
     
-    // Contar inscripciones confirmadas
-    let confirmadas = 0;
+    // Contar TODAS las inscripciones (sin filtrar por estado)
+    let totalInscripciones = 0;
+    let conUnTaller = 0;
+    let conDosTalleres = 0;
+    
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const estado = row[10]; // Columna K (índice 10) - Estado
+      const taller1 = colTaller1 !== -1 ? row[colTaller1] : row[7];
+      const taller2 = colTaller2 !== -1 ? row[colTaller2] : row[8];
       
-      if (estado === 'Confirmado') {
-        confirmadas++;
-        const taller1 = row[7]; // Columna H (índice 7) - 1ª Sesión
-        const taller2 = row[8]; // Columna I (índice 8) - 2ª Sesión
-        
-        console.log(`📝 Fila ${i}: ${taller1}, ${taller2}, Estado: ${estado}`);
+      // Solo contar si hay al menos un taller seleccionado
+      if (taller1 || taller2) {
+        totalInscripciones++;
         
         // Limpiar nombres de talleres (eliminar texto de disponibilidad)
-        let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-        let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+        let cleanTaller1 = sanitizeWorkshopName(taller1);
+        let cleanTaller2 = sanitizeWorkshopName(taller2);
         
-        console.log(`🧹 Talleres limpios: "${cleanTaller1}", "${cleanTaller2}"`);
+        // Buscar coincidencias en WORKSHOP_NAMES
+        const key1 = findWorkshopMatch(cleanTaller1);
+        const key2 = findWorkshopMatch(cleanTaller2);
         
-        // Descontar plazas si los talleres están en el mapeo
-        if (WORKSHOP_NAMES[cleanTaller1]) {
-          availability[cleanTaller1] = Math.max(0, availability[cleanTaller1] - 1);
-          console.log(`📉 Descontada 1 plaza de ${cleanTaller1}. Quedan: ${availability[cleanTaller1]}`);
-        } else {
-          console.log(`⚠️ Taller 1 no encontrado en mapeo: "${cleanTaller1}"`);
-        }
-        
-        if (WORKSHOP_NAMES[cleanTaller2]) {
-          availability[cleanTaller2] = Math.max(0, availability[cleanTaller2] - 1);
-          console.log(`📉 Descontada 1 plaza de ${cleanTaller2}. Quedan: ${availability[cleanTaller2]}`);
-        } else {
-          console.log(`⚠️ Taller 2 no encontrado en mapeo: "${cleanTaller2}"`);
+        if (key1 && key2) {
+          conDosTalleres++;
+          availability[key1] = Math.max(0, availability[key1] - 1);
+          availability[key2] = Math.max(0, availability[key2] - 1);
+          console.log(`📝 Fila ${i}: ${cleanTaller1} + ${cleanTaller2}`);
+        } else if (key1 || key2) {
+          conUnTaller++;
+          if (key1) {
+            availability[key1] = Math.max(0, availability[key1] - 1);
+            console.log(`📝 Fila ${i}: Solo ${cleanTaller1}`);
+          }
+          if (key2) {
+            availability[key2] = Math.max(0, availability[key2] - 1);
+            console.log(`📝 Fila ${i}: Solo ${cleanTaller2}`);
+          }
         }
       }
     }
     
-    console.log(`📊 Total de inscripciones confirmadas: ${confirmadas}`);
+    console.log(`📊 Total de inscripciones: ${totalInscripciones}`);
+    console.log(`📊 Con un taller: ${conUnTaller}`);
+    console.log(`📊 Con dos talleres: ${conDosTalleres}`);
     console.log("📊 Disponibilidad final calculada:", availability);
     
     return availability;
@@ -332,16 +355,27 @@ function checkWorkshopAvailability() {
 
 // Verificar si hay plazas disponibles para los talleres seleccionados (CORREGIDA)
 function checkAvailability(taller1, taller2, availability) {
-  // Limpiar los nombres de talleres (eliminar texto de disponibilidad)
-  let cleanTaller1 = taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
-  let cleanTaller2 = taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
+  // Limpiar los nombres de talleres
+  let cleanTaller1 = sanitizeWorkshopName(taller1);
+  let cleanTaller2 = sanitizeWorkshopName(taller2);
   
   console.log(`🧹 Taller 1 limpio: "${cleanTaller1}"`);
   console.log(`🧹 Taller 2 limpio: "${cleanTaller2}"`);
   
-  // Ahora, availability[cleanTallerX] debería ser un número
-  let available1 = WORKSHOP_NAMES[cleanTaller1] ? availability[cleanTaller1] : 0;
-  let available2 = WORKSHOP_NAMES[cleanTaller2] ? availability[cleanTaller2] : 0;
+  // Buscar coincidencias en WORKSHOP_NAMES
+  const key1 = findWorkshopMatch(cleanTaller1);
+  const key2 = findWorkshopMatch(cleanTaller2);
+  
+  let available1 = 0;
+  let available2 = 0;
+  
+  if (key1) {
+    available1 = availability[key1] !== undefined ? availability[key1] : WORKSHOP_NAMES[key1].capacity;
+  }
+  
+  if (key2) {
+    available2 = availability[key2] !== undefined ? availability[key2] : WORKSHOP_NAMES[key2].capacity;
+  }
   
   console.log(`🔍 Verificando disponibilidad: ${cleanTaller1} (${available1}), ${cleanTaller2} (${available2})`);
   return available1 > 0 && available2 > 0;
@@ -354,11 +388,69 @@ function checkSingleWorkshopAvailability(taller, availability) {
   
   console.log(`🧹 Taller único limpio: "${cleanTaller}"`);
   
-  // Verificar disponibilidad
-  let available = WORKSHOP_NAMES[cleanTaller] ? availability[cleanTaller] : 0;
+  // Buscar coincidencia en WORKSHOP_NAMES
+  const key = findWorkshopMatch(cleanTaller);
+  if (!key) {
+    console.log(`🔍 Taller no reconocido o no seleccionado: "${cleanTaller}"`);
+    return false;
+  }
   
-  console.log(`🔍 Verificando disponibilidad de taller único: ${cleanTaller} (${available} plazas)`);
+  // Verificar disponibilidad
+  let available = availability[key] !== undefined ? availability[key] : WORKSHOP_NAMES[key].capacity;
+  
+  console.log(`🔍 Verificando disponibilidad de taller único: ${sanitizeWorkshopName(taller)} (${available} plazas)`);
   return available > 0;
+}
+
+// Funciones auxiliares para limpiar y mapear nombres de talleres
+function sanitizeWorkshopName(value) {
+  if (!value) return "";
+  return String(value)
+    .replace(/^[✅❌]\s*/, '')
+    .replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '')
+    .replace(/\s*-\s*NO DISPONIBLE/gi, '')
+    .replace(/\s*\.\s*$/g, '')
+    .trim();
+}
+
+function findWorkshopMatch(input) {
+  const cleanText = sanitizeWorkshopName(input);
+  if (!cleanText) return "";
+  
+  // Buscar coincidencia exacta
+  if (WORKSHOP_NAMES[cleanText]) {
+    return cleanText;
+  }
+  
+  // Buscar por número de taller (más flexible)
+  const numberMatch = cleanText.match(/^(\d+)\.\s*(.+)/);
+  if (numberMatch) {
+    const number = numberMatch[1];
+    const rest = numberMatch[2].split(':')[0].trim();
+    
+    // Buscar coincidencia exacta por número
+    const exactByNumber = Object.keys(WORKSHOP_NAMES).find(key => 
+      key.startsWith(number + '.') && key.includes(rest)
+    );
+    if (exactByNumber) return exactByNumber;
+    
+    // Buscar coincidencia parcial por número (más flexible)
+    const partialByNumber = Object.keys(WORKSHOP_NAMES).find(key => {
+      if (!key.startsWith(number + '.')) return false;
+      const keyRest = key.split(':')[0].replace(/^\d+\.\s*/, '').trim();
+      return keyRest.includes(rest) || rest.includes(keyRest);
+    });
+    if (partialByNumber) return partialByNumber;
+  }
+  
+  // Buscar por palabras clave (más flexible)
+  const head = cleanText.split(':')[0].trim();
+  const byHead = Object.keys(WORKSHOP_NAMES).find(key => {
+    const keyHead = key.split(':')[0].trim();
+    return keyHead === head || key.includes(head) || head.includes(keyHead);
+  });
+  
+  return byHead || "";
 }
 
 // Confirmar inscripción
@@ -433,22 +525,28 @@ function addToWaitlist(email, nombre, apellidos, meInscriboComo, taller1, taller
 
 function createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1, taller2) {
   // Limpiar los nombres de talleres para buscar en WORKSHOP_NAMES
-  let cleanTaller1 = taller1 ? taller1.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
-  let cleanTaller2 = taller2 ? taller2.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim() : '';
+  let cleanTaller1 = taller1 ? sanitizeWorkshopName(taller1) : '';
+  let cleanTaller2 = taller2 ? sanitizeWorkshopName(taller2) : '';
+
+  // Obtener nombres de display
+  const key1 = findWorkshopMatch(cleanTaller1);
+  const key2 = findWorkshopMatch(cleanTaller2);
+  const displayName1 = key1 ? WORKSHOP_NAMES[key1].name : cleanTaller1;
+  const displayName2 = key2 ? WORKSHOP_NAMES[key2].name : cleanTaller2;
 
   // Construir la lista de talleres seleccionados
   let workshopsList = '';
   if (cleanTaller1 && cleanTaller2) {
     workshopsList = `
       <ul class="workshop-list">
-        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
-        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+        <li><strong>1ª Sesión:</strong> ${displayName1}</li>
+        <li><strong>2ª Sesión:</strong> ${displayName2}</li>
       </ul>
     `;
   } else if (cleanTaller1) {
     workshopsList = `
       <ul class="workshop-list">
-        <li><strong>1ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller1] ? WORKSHOP_NAMES[cleanTaller1].name : cleanTaller1}</li>
+        <li><strong>1ª Sesión:</strong> ${displayName1}</li>
         <li><strong>2ª Sesión:</strong> No seleccionado</li>
       </ul>
     `;
@@ -456,7 +554,7 @@ function createConfirmationEmailHTML(nombre, apellidos, meInscriboComo, taller1,
     workshopsList = `
       <ul class="workshop-list">
         <li><strong>1ª Sesión:</strong> No seleccionado</li>
-        <li><strong>2ª Sesión:</strong> ${WORKSHOP_NAMES[cleanTaller2] ? WORKSHOP_NAMES[cleanTaller2].name : cleanTaller2}</li>
+        <li><strong>2ª Sesión:</strong> ${displayName2}</li>
       </ul>
     `;
   }
@@ -1285,47 +1383,112 @@ function corregirConteoInscripciones() {
   try {
     console.log("🔧 Corrigiendo conteo de inscripciones...");
     
-    // Datos correctos proporcionados por el usuario (basados en capacidad real)
-    const datosCorrectos = {
-      "1. Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula Instituto Artes Escénicas": { disponibles: 14 },
-      "2. Matemáticas creativas en Educación Primaria Irene López, Cristina Bezón y Beatriz Hernández Santa María la Blanca": { disponibles: 19 },
-      "3. Matemáticas competenciales en Secundaria Manuel Llorens Santa María la Blanca": { disponibles: 17 },
-      "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca": { disponibles: 0 },
-      "5. Innovación social: crea, actúa y cambia el mundo Luis Miguel Olivas Fundación Iruaritz Lezama": { disponibles: 14 },
-      "6. Crecer sin alas prestadas Equipo de Acompañate Santa María la Blanca": { disponibles: 22 },
-      "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer": { disponibles: 0 },
-      "8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense": { disponibles: 21 },
-      "9. Inspira Talks: La escuela de los sentidos A) Pequeños grandes viajes sensoriales Ana Posada Santa María la Blanca B) Cuerpo que juega, mente que aprende Lorena Gómez Santa María la Blanca": { disponibles: 9 },
-      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca": { disponibles: 0 },
-      "11. Godly Play: «Jugando con Dios» Equipo Godly Play Santa María la Blanca": { disponibles: 12 },
-      "12. Copilot Chat en el aula: cómo multiplicar el potencial docente con IA Felipe García Gaitero Universidad Europea": { disponibles: 18 },
-      "13. IA para mentes que enseñan Antonio Julio López Universidad Rey Juan Carlos": { disponibles: 11 },
-      "14. Más allá del marcador: deporte, valores y emociones Jose Javier Illana illanactiva": { disponibles: 18 },
-      "15. Networking y Comunicación Estratégica en la Escuela y en la Vida Lucila Ballarino ConexIA": { disponibles: 18 },
-      "16. Palabras que construyen: herramientas para transformar el conflicto en conexión con los adolescentes Ana López e Iranzu Arellano Santa María la Blanca": { disponibles: 8 },
-      "17. Inspira Talks: Humanizar la educación A) Transformación Digital e Innovación Educativa | IA Aplicada a la Educación Antonio Segura Marrero UNIR B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": { disponibles: 22 },
-      "18. Inspira Talks: La emoción de acompañar A) Conciencia emocional: el punto de partida para educar Sara Hernández Cano Educandoatulado B) Cuidar, acompañar y educar Colegio San Ignacio de Loyola": { disponibles: 1 }
-    };
+    // Primero calcular los datos reales desde el CSV
+    const datosReales = calcularDisponibilidadReal();
     
-    console.log("📊 DATOS CORRECTOS:");
+    console.log("📊 DATOS REALES CALCULADOS:");
     console.log("=".repeat(50));
     
-    Object.keys(datosCorrectos).forEach(key => {
-      const data = datosCorrectos[key];
+    Object.keys(datosReales).forEach(key => {
+      const data = datosReales[key];
       const estado = data.disponibles <= 0 ? "COMPLETO" : `${data.disponibles} plazas`;
       
-      console.log(`${key}:`);
+      console.log(`${WORKSHOP_NAMES[key].name}:`);
+      console.log(`  Inscritos: ${data.inscritos}`);
+      console.log(`  Capacidad: ${data.capacidad}`);
       console.log(`  Disponibles: ${data.disponibles}`);
       console.log(`  Estado: ${estado}`);
       console.log("");
     });
     
-    // Actualizar el formulario con los datos correctos
-    console.log("🔄 Actualizando formulario con datos correctos...");
-    updateFormOptionsWithCorrectData(datosCorrectos);
+    // Actualizar el formulario con los datos reales
+    console.log("🔄 Actualizando formulario con datos reales...");
+    updateFormOptionsWithCorrectData(datosReales);
     
   } catch (error) {
     console.error("❌ Error corrigiendo conteo:", error);
+  }
+}
+
+function calcularDisponibilidadReal() {
+  try {
+    console.log("🔍 Calculando disponibilidad real desde el CSV...");
+    
+    const sheet = SpreadsheetApp.getActiveSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    if (!data || data.length < 2) {
+      console.log("❌ No hay datos en la hoja");
+      return {};
+    }
+    
+    // Buscar columnas por headers
+    const headers = data[0];
+    const colTaller1 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 17:30'));
+    const colTaller2 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 18:30'));
+    
+    console.log(`📊 Columnas encontradas: Taller1=${colTaller1}, Taller2=${colTaller2}`);
+    
+    // Contador para cada taller
+    const contadores = {};
+    Object.keys(WORKSHOP_NAMES).forEach(key => {
+      contadores[key] = 0;
+    });
+    
+    let totalInscripciones = 0;
+    let conUnTaller = 0;
+    let conDosTalleres = 0;
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const taller1 = colTaller1 !== -1 ? row[colTaller1] : row[7];
+      const taller2 = colTaller2 !== -1 ? row[colTaller2] : row[8];
+      
+      // Solo contar si hay al menos un taller seleccionado
+      if (taller1 || taller2) {
+        totalInscripciones++;
+        
+        const cleanTaller1 = sanitizeWorkshopName(taller1);
+        const cleanTaller2 = sanitizeWorkshopName(taller2);
+        
+        const key1 = findWorkshopMatch(cleanTaller1);
+        const key2 = findWorkshopMatch(cleanTaller2);
+        
+        if (key1 && key2) {
+          conDosTalleres++;
+          contadores[key1]++;
+          contadores[key2]++;
+        } else if (key1 || key2) {
+          conUnTaller++;
+          if (key1) contadores[key1]++;
+          if (key2) contadores[key2]++;
+        }
+      }
+    }
+    
+    console.log(`📊 Total de inscripciones: ${totalInscripciones}`);
+    console.log(`📊 Con un taller: ${conUnTaller}`);
+    console.log(`📊 Con dos talleres: ${conDosTalleres}`);
+    
+    // Crear objeto con datos reales
+    const datosReales = {};
+    Object.keys(WORKSHOP_NAMES).forEach(key => {
+      const inscritos = contadores[key];
+      const capacidad = WORKSHOP_NAMES[key].capacity;
+      const disponibles = Math.max(0, capacidad - inscritos);
+      
+      datosReales[key] = {
+        inscritos: inscritos,
+        capacidad: capacidad,
+        disponibles: disponibles
+      };
+    });
+    
+    return datosReales;
+    
+  } catch (error) {
+    console.error("❌ Error calculando disponibilidad real:", error);
+    return {};
   }
 }
 
@@ -1352,12 +1515,14 @@ function updateFormOptionsWithCorrectData(datosCorrectos) {
             // Limpiar el texto de disponibilidad existente
             originalText = originalText.replace(/\s*\((\d+\/\d+\splazas disponibles|COMPLETO|\d+\splazas disponibles)\)/g, '').trim();
             
-            // Buscar en los datos correctos
+            // Buscar coincidencia en WORKSHOP_NAMES
+            const key = findWorkshopMatch(originalText);
             let available = 0;
-            if (datosCorrectos[originalText]) {
-              available = datosCorrectos[originalText].disponibles;
-            } else if (WORKSHOP_NAMES[originalText]) {
-              available = WORKSHOP_NAMES[originalText].capacity;
+            
+            if (key && datosCorrectos[key]) {
+              available = datosCorrectos[key].disponibles;
+            } else if (key && WORKSHOP_NAMES[key]) {
+              available = WORKSHOP_NAMES[key].capacity;
             }
             
             if (available <= 0) {
@@ -1421,9 +1586,9 @@ function probarInscripcionUnTaller() {
     // Simular datos de prueba con solo un taller
     const testData = [
       new Date(), // Marca temporal
-      "Marifé", // Nombre
-      "Cañas Rincón", // Apellidos
-      "mfcanas@p.csmb.es", // Email
+      "Prueba", // Nombre
+      "Prueba", // Apellidos
+      "rcuesta@p.csmb.es", // Email
       "12345678Z", // DNI
       "Periodista", // Me inscribo como
       "Colegio de Prueba", // Institución
@@ -1445,5 +1610,339 @@ function probarInscripcionUnTaller() {
     
   } catch (error) {
     console.error("❌ Error en prueba:", error);
+  }
+}
+
+// Función para probar inscripción con dos talleres
+function probarInscripcionDosTalleres() {
+  try {
+    console.log("🧪 Probando inscripción con dos talleres...");
+    
+    // Simular datos de prueba con dos talleres
+    const testData = [
+      new Date(), // Marca temporal
+      "Prueba", // Nombre
+      "Dos Talleres", // Apellidos
+      "rcuesta@p.csmb.es", // Email
+      "12345678Z", // DNI
+      "Docente", // Me inscribo como
+      "Colegio de Prueba", // Institución
+      "1. Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula Instituto Artes Escénicas", // Taller 1ª sesión
+      "11. Godly Play: «Jugando con Dios» Equipo Godly Play Santa María la Blanca", // Taller 2ª sesión
+      "Sí", // Comunicación digital
+      "", // Estado (se llenará por el script)
+      ""  // Fecha de inscripción (se llenará por el script)
+    ];
+    
+    // Añadir fila de prueba a la hoja
+    const sheet = SpreadsheetApp.getActiveSheet();
+    sheet.appendRow(testData);
+    
+    // Llamar a onFormSubmit
+    onFormSubmit({values: testData});
+    
+    console.log("✅ Prueba de inscripción con dos talleres completada");
+    
+  } catch (error) {
+    console.error("❌ Error en prueba:", error);
+  }
+}
+
+// Función para probar solo el envío de emails (sin añadir a la hoja)
+function probarEnvioEmails() {
+  try {
+    console.log("📧 Probando envío de emails...");
+    
+    // Probar email de confirmación con un taller
+    console.log("📧 Probando email de confirmación con un taller...");
+    const email1Taller = createConfirmationEmailHTML(
+      "María", 
+      "García López", 
+      "Docente", 
+      "1. Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula Instituto Artes Escénicas", 
+      ""
+    );
+    
+    MailApp.sendEmail({
+      to: "rcuesta@p.csmb.es",
+      subject: "PRUEBA: Email confirmación con 1 taller",
+      htmlBody: email1Taller,
+      noReply: true,
+      name: "XIV Foro de Innovación Educativa"
+    });
+    
+    // Probar email de confirmación con dos talleres
+    console.log("📧 Probando email de confirmación con dos talleres...");
+    const email2Talleres = createConfirmationEmailHTML(
+      "Juan", 
+      "Pérez Martínez", 
+      "Docente", 
+      "1. Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula Instituto Artes Escénicas", 
+      "11. Godly Play: «Jugando con Dios» Equipo Godly Play Santa María la Blanca"
+    );
+    
+    MailApp.sendEmail({
+      to: "rcuesta@p.csmb.es",
+      subject: "PRUEBA: Email confirmación con 2 talleres",
+      htmlBody: email2Talleres,
+      noReply: true,
+      name: "XIV Foro de Innovación Educativa"
+    });
+    
+    console.log("✅ Pruebas de envío de emails completadas");
+    
+  } catch (error) {
+    console.error("❌ Error en prueba de emails:", error);
+  }
+}
+
+// Función para actualizar el formulario con los datos correctos del CSV
+function actualizarFormularioConDatosReales() {
+  try {
+    console.log("🔄 Actualizando formulario con datos reales del CSV...");
+    
+    // Primero limpiar las opciones
+    cleanFormOptions();
+    
+    // Calcular disponibilidad real
+    const datosReales = calcularDisponibilidadReal();
+    
+    console.log("📊 DATOS REALES CALCULADOS:");
+    console.log("=".repeat(50));
+    
+    Object.keys(datosReales).forEach(key => {
+      const data = datosReales[key];
+      const estado = data.disponibles <= 0 ? "COMPLETO" : `${data.disponibles} plazas`;
+      
+      console.log(`${WORKSHOP_NAMES[key].name}:`);
+      console.log(`  Inscritos: ${data.inscritos}`);
+      console.log(`  Capacidad: ${data.capacidad}`);
+      console.log(`  Disponibles: ${data.disponibles}`);
+      console.log(`  Estado: ${estado}`);
+      console.log("");
+    });
+    
+    // Actualizar el formulario
+    updateFormOptionsWithCorrectData(datosReales);
+    
+    console.log("✅ Formulario actualizado con datos reales");
+    
+  } catch (error) {
+    console.error("❌ Error actualizando formulario:", error);
+  }
+}
+
+// Función para diagnosticar problemas de mapeo
+function diagnosticarMapeo() {
+  try {
+    console.log("🔍 Diagnosticando problemas de mapeo...");
+    
+    const sheet = SpreadsheetApp.getActiveSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    if (!data || data.length < 2) {
+      console.log("❌ No hay datos en la hoja");
+      return;
+    }
+    
+    // Buscar columnas por headers
+    const headers = data[0];
+    const colEstado = headers.findIndex(h => String(h).trim().toLowerCase() === 'estado');
+    const colTaller1 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 17:30'));
+    const colTaller2 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 18:30'));
+    
+    console.log(`📊 Columnas encontradas: Estado=${colEstado}, Taller1=${colTaller1}, Taller2=${colTaller2}`);
+    
+    // Contar talleres únicos encontrados
+    const talleresEncontrados = new Set();
+    const talleresNoMapeados = new Set();
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const estado = colEstado !== -1 ? row[colEstado] : row[10];
+      const statusText = estado ? String(estado).trim().toLowerCase() : "";
+      
+      if (statusText === 'confirmado' || statusText === 'confirmada') {
+        const taller1 = colTaller1 !== -1 ? row[colTaller1] : row[7];
+        const taller2 = colTaller2 !== -1 ? row[colTaller2] : row[8];
+        
+        const cleanTaller1 = sanitizeWorkshopName(taller1);
+        const cleanTaller2 = sanitizeWorkshopName(taller2);
+        
+        if (cleanTaller1) {
+          talleresEncontrados.add(cleanTaller1);
+          const key1 = findWorkshopMatch(cleanTaller1);
+          if (!key1) {
+            talleresNoMapeados.add(cleanTaller1);
+          }
+        }
+        
+        if (cleanTaller2) {
+          talleresEncontrados.add(cleanTaller2);
+          const key2 = findWorkshopMatch(cleanTaller2);
+          if (!key2) {
+            talleresNoMapeados.add(cleanTaller2);
+          }
+        }
+      }
+    }
+    
+    console.log(`\n📊 TALLERES ENCONTRADOS EN CSV (${talleresEncontrados.size}):`);
+    Array.from(talleresEncontrados).sort().forEach(taller => {
+      const key = findWorkshopMatch(taller);
+      const status = key ? `✅ -> "${key}"` : "❌ NO MAPEADO";
+      console.log(`   "${taller}" ${status}`);
+    });
+    
+    if (talleresNoMapeados.size > 0) {
+      console.log(`\n❌ TALLERES NO MAPEADOS (${talleresNoMapeados.size}):`);
+      Array.from(talleresNoMapeados).sort().forEach(taller => {
+        console.log(`   "${taller}"`);
+      });
+    }
+    
+    console.log(`\n📋 CLAVES EN WORKSHOP_NAMES:`);
+    Object.keys(WORKSHOP_NAMES).sort().forEach(key => {
+      console.log(`   "${key}"`);
+    });
+    
+  } catch (error) {
+    console.error("❌ Error diagnosticando mapeo:", error);
+  }
+}
+
+// Función para probar casos problemáticos específicos
+function probarCasosProblematicos() {
+  try {
+    console.log("🧪 Probando casos problemáticos...");
+    
+    const testCases = [
+      // Taller 10 (GameLab)
+      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca",
+      "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca (15 plazas disponibles)",
+      
+      // Taller 8 (Metacognición)
+      "8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense",
+      
+      // Taller 7 (Claves para cultivar tu salud)
+      "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer",
+      
+      // Taller 4 (AyudIA)
+      "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca"
+    ];
+    
+    testCases.forEach(testCase => {
+      console.log(`\n🔍 Probando: "${testCase}"`);
+      const clean = sanitizeWorkshopName(testCase);
+      console.log(`🧹 Limpio: "${clean}"`);
+      const match = findWorkshopMatch(clean);
+      console.log(`✅ Resultado: "${match}"`);
+      
+      if (match) {
+        const capacidad = WORKSHOP_NAMES[match].capacity;
+        console.log(`📊 Capacidad: ${capacidad}`);
+      }
+    });
+    
+    // Verificar claves específicas
+    console.log(`\n📋 CLAVES ESPECÍFICAS:`);
+    const keys = ['10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca', 
+                  '8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense',
+                  '7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer',
+                  '4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca'];
+    
+    keys.forEach(key => {
+      const existe = WORKSHOP_NAMES[key] ? '✅' : '❌';
+      const capacidad = WORKSHOP_NAMES[key] ? WORKSHOP_NAMES[key].capacity : 'N/A';
+      console.log(`   "${key}" ${existe} (Capacidad: ${capacidad})`);
+    });
+    
+  } catch (error) {
+    console.error("❌ Error probando casos:", error);
+  }
+}
+
+// Función para verificar el conteo real de inscripciones (CORREGIDA - SIN FILTRAR POR ESTADO)
+function verificarConteoReal() {
+  try {
+    console.log("🔍 Verificando conteo real de inscripciones...");
+    
+    const sheet = SpreadsheetApp.getActiveSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    if (!data || data.length < 2) {
+      console.log("❌ No hay datos en la hoja");
+      return;
+    }
+    
+    // Buscar columnas por headers
+    const headers = data[0];
+    const colTaller1 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 17:30'));
+    const colTaller2 = headers.findIndex(h => String(h).includes('¿En qué taller quiero apuntarme a las 18:30'));
+    
+    console.log(`📊 Columnas encontradas: Taller1=${colTaller1}, Taller2=${colTaller2}`);
+    
+    // Contador para cada taller
+    const contadores = {};
+    Object.keys(WORKSHOP_NAMES).forEach(key => {
+      contadores[key] = 0;
+    });
+    
+    let totalInscripciones = 0;
+    let conUnTaller = 0;
+    let conDosTalleres = 0;
+    let noMapeados = 0;
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const taller1 = colTaller1 !== -1 ? row[colTaller1] : row[7];
+      const taller2 = colTaller2 !== -1 ? row[colTaller2] : row[8];
+      
+      // Solo contar si hay al menos un taller seleccionado
+      if (taller1 || taller2) {
+        totalInscripciones++;
+        
+        const cleanTaller1 = sanitizeWorkshopName(taller1);
+        const cleanTaller2 = sanitizeWorkshopName(taller2);
+        
+        const key1 = findWorkshopMatch(cleanTaller1);
+        const key2 = findWorkshopMatch(cleanTaller2);
+        
+        if (key1) contadores[key1]++;
+        if (key2) contadores[key2]++;
+        
+        if (!key1 && cleanTaller1) {
+          noMapeados++;
+          console.log(`⚠️ Taller 1 no mapeado - Fila ${i}: "${cleanTaller1}"`);
+        }
+        if (!key2 && cleanTaller2) {
+          noMapeados++;
+          console.log(`⚠️ Taller 2 no mapeado - Fila ${i}: "${cleanTaller2}"`);
+        }
+        
+        if (key1 && key2) {
+          conDosTalleres++;
+        } else if (key1 || key2) {
+          conUnTaller++;
+        }
+      }
+    }
+    
+    console.log(`📊 RESUMEN:`);
+    console.log(`   Total inscripciones: ${totalInscripciones}`);
+    console.log(`   Con un taller: ${conUnTaller}`);
+    console.log(`   Con dos talleres: ${conDosTalleres}`);
+    console.log(`   No mapeados: ${noMapeados}`);
+    console.log(`📊 CONTEO POR TALLER:`);
+    
+    Object.keys(WORKSHOP_NAMES).forEach(key => {
+      const inscritos = contadores[key];
+      const disponibles = WORKSHOP_NAMES[key].capacity - inscritos;
+      const estado = disponibles <= 0 ? "COMPLETO" : `${disponibles} plazas`;
+      console.log(`   ${WORKSHOP_NAMES[key].name}: ${inscritos}/${WORKSHOP_NAMES[key].capacity} (${estado})`);
+    });
+    
+  } catch (error) {
+    console.error("❌ Error verificando conteo:", error);
   }
 }
