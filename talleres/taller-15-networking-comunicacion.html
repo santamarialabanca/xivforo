@@ -278,6 +278,52 @@
             transform: translateY(-3px) scale(1.02);
         }
         
+        .workshop-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px 0;
+            border-top: 1px solid rgba(128,24,54,0.1);
+            border-bottom: 1px solid rgba(128,24,54,0.1);
+        }
+        
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            background: rgba(128,24,54,0.05);
+            border-color: rgba(128,24,54,0.2);
+        }
+        
+        .nav-btn:hover {
+            background: rgba(128,24,54,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .workshop-counter {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--granate);
+            background: rgba(128,24,54,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .workshop-navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
         .tag {
             display: inline-block;
             background: var(--glass);
@@ -346,10 +392,8 @@
     
     <div class="container">
         <div class="cta">
-            <span class="tag">2ª Sesión</span>
-            <span class="tag">18:30 - 19:15 h</span>
-            <span class="tag">Valores en la Era Digital</span>
-            <a class="btn primary" href="https://forms.gle/L2FSdfhcUFnbJjPx8" target="_blank" rel="noopener">
+            <span class="btn primary">XIV Foro de Innovación Educativa</span>
+            <a class="btn" href="https://forms.gle/L2FSdfhcUFnbJjPx8" target="_blank" rel="noopener">
                 <i class="fas fa-edit"></i>
                 Inscripción asistentes
             </a>
@@ -360,6 +404,18 @@
             <a class="btn" href="../index.html" rel="noopener">
                 <i class="fas fa-home"></i>
                 Volver al inicio
+            </a>
+        </div>
+        
+        <div class="workshop-navigation">
+            <a class="btn nav-btn" href="taller-14-mas-alla-marcador.html" rel="noopener">
+                <i class="fas fa-chevron-left"></i>
+                Anterior
+            </a>
+            <span class="workshop-counter">Taller 15 de 18</span>
+            <a class="btn nav-btn" href="taller-16-palabras-construyen.html" rel="noopener">
+                Siguiente
+                <i class="fas fa-chevron-right"></i>
             </a>
         </div>
         
