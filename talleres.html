@@ -130,6 +130,22 @@
 		transform: translateY(-5px);
 	  }
 	  
+	  .banner-link {
+		text-decoration: none;
+		color: inherit;
+		display: block;
+		transition: transform 0.3s ease;
+	  }
+	  
+	  .banner-link:hover {
+		transform: scale(1.02);
+	  }
+	  
+	  .banner-link:hover img {
+		transform: translateY(-5px) scale(1.02);
+		box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+	  }
+	  
 	  .s-wrap{
 		max-width:1100px;
 		margin:0 auto;
@@ -961,7 +977,9 @@
 		<div class="header-content">
 			<!-- Solo la imagen del banner -->
 			<div class="banner-image">
-				<img src="banner 1600x400 (1).png" alt="HUMANIA - Desafío Educativo" style="background: white; padding: 10px; border-radius: 10px;">
+				<a href="index.html" class="banner-link">
+					<img src="banner 1600x400 (1).png" alt="HUMANIA - Desafío Educativo" style="background: white; padding: 10px; border-radius: 10px;">
+				</a>
 			</div>
 		</div>
 	</header>

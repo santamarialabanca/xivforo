@@ -130,6 +130,22 @@
 		transform: translateY(-5px);
 	  }
 	  
+	  .banner-link {
+		text-decoration: none;
+		color: inherit;
+		display: block;
+		transition: transform 0.3s ease;
+	  }
+	  
+	  .banner-link:hover {
+		transform: scale(1.02);
+	  }
+	  
+	  .banner-link:hover img {
+		transform: translateY(-5px) scale(1.02);
+		box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+	  }
+	  
 	  .s-wrap{
 		max-width:1100px;
 		margin:0 auto;
@@ -434,100 +450,71 @@
 		opacity: 0.9;
 	  }
 	  
-	  /* Timeline unificada con desplegables */
-	  .timeline-item-unified {
+	  /* Timeline horizontal fija */
+	  .timeline-item-fixed {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		flex: 1;
-		min-width: 120px;
+		min-width: 140px;
 		position: relative;
 		z-index: 2;
-		cursor: pointer;
 		transition: var(--transition);
 	  }
 	  
-	  .timeline-item-unified:hover {
+	  .timeline-item-fixed:hover {
 		transform: translateY(-2px);
 	  }
 	  
-	  .timeline-content-unified {
+	  .timeline-content-fixed {
 		text-align: center;
 		background: rgba(255,255,255,0.9);
-		padding: 15px 12px;
+		padding: 16px 12px;
 		border-radius: 12px;
 		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 		transition: var(--transition);
-		min-width: 120px;
+		min-width: 140px;
 		width: 100%;
 		position: relative;
 	  }
 	  
-	  .timeline-item-unified:hover .timeline-content-unified {
+	  .timeline-item-fixed:hover .timeline-content-fixed {
 		background: white;
 		box-shadow: 0 4px 12px rgba(128,24,54,0.2);
 		transform: translateY(-2px);
 	  }
 	  
-	  .timeline-time-unified {
+	  .timeline-time-fixed {
 		font-weight: 700;
 		color: var(--granate);
 		font-size: 0.85rem;
 		margin-bottom: 4px;
 	  }
 	  
-	  .timeline-text-unified {
+	  .timeline-text-fixed {
 		font-size: 0.8rem;
-		color: var(--gris);
+		color: var(--granate);
 		font-weight: 600;
 		margin-bottom: 3px;
 		line-height: 1.3;
 	  }
 	  
-	  .timeline-duration-unified {
+	  .timeline-duration-fixed {
 		font-size: 0.75rem;
 		color: #e8c259;
 		font-weight: 600;
 		opacity: 0.9;
-		margin-bottom: 8px;
+		margin-bottom: 6px;
 	  }
 	  
-	  .timeline-details {
-		background: rgba(128,24,54,0.05);
-		padding: 10px;
-		border-radius: 8px;
-		margin-top: 8px;
-		border-left: 3px solid var(--granate);
-		animation: slideDown 0.3s ease-out;
-	  }
-	  
-	  .timeline-details p {
-		margin: 0;
-		font-size: 0.8rem;
+	  .timeline-description-fixed {
+		font-size: 0.7rem;
 		color: var(--gris);
 		font-style: italic;
-	  }
-	  
-	  .timeline-toggle {
-		margin-top: 8px;
-		color: var(--granate);
-		font-size: 0.8rem;
-		transition: var(--transition);
-	  }
-	  
-	  .timeline-item-unified.expanded .timeline-toggle i {
-		transform: rotate(180deg);
-	  }
-	  
-	  @keyframes slideDown {
-		from {
-		  opacity: 0;
-		  transform: translateY(-10px);
-		}
-		to {
-		  opacity: 1;
-		  transform: translateY(0);
-		}
+		line-height: 1.2;
+		margin-top: 4px;
+		padding-top: 4px;
+		border-top: 1px solid rgba(128,24,54,0.1);
 	  }
 	  
 	  /* Cards de información mejoradas */
@@ -676,7 +663,7 @@
 		  font-size: 0.85rem;
 		}
 		
-		/* Timeline unificada responsive */
+		/* Timeline fija responsive */
 		.timeline-container {
 		  flex-direction: column;
 		  gap: 15px;
@@ -687,7 +674,7 @@
 		  display: none;
 		}
 		
-		.timeline-item-unified {
+		.timeline-item-fixed {
 		  flex-direction: row;
 		  align-items: flex-start;
 		  justify-content: flex-start;
@@ -705,7 +692,7 @@
 		  flex-shrink: 0;
 		}
 		
-		.timeline-content-unified {
+		.timeline-content-fixed {
 		  background: transparent;
 		  padding: 0;
 		  box-shadow: none;
@@ -715,29 +702,30 @@
 		  flex: 1;
 		}
 		
-		.timeline-time-unified {
+		.timeline-time-fixed {
 		  font-size: 0.9rem;
 		  margin-bottom: 4px;
 		  margin-right: 0;
 		  min-width: 80px;
 		}
 		
-		.timeline-text-unified {
+		.timeline-text-fixed {
 		  font-size: 0.85rem;
 		  margin-bottom: 3px;
 		  flex: 1;
 		}
 		
-		.timeline-duration-unified {
+		.timeline-duration-fixed {
 		  font-size: 0.8rem;
 		  margin-bottom: 8px;
 		  opacity: 0.8;
 		}
 		
-		.timeline-toggle {
-		  margin-top: 0;
-		  margin-left: auto;
-		  flex-shrink: 0;
+		.timeline-description-fixed {
+		  font-size: 0.75rem;
+		  margin-top: 4px;
+		  padding-top: 4px;
+		  border-top: 1px solid rgba(128,24,54,0.1);
 		}
 		
 		/* Formato del evento responsive */
@@ -767,7 +755,9 @@
 		<div class="header-content">
 			<!-- Solo la imagen del banner -->
 			<div class="banner-image">
-				<img src="banner 1600x400 (1).png" alt="HUMANIA - Desafío Educativo" style="background: white; padding: 10px; border-radius: 10px;">
+				<a href="index.html" class="banner-link">
+					<img src="banner 1600x400 (1).png" alt="HUMANIA - Desafío Educativo" style="background: white; padding: 10px; border-radius: 10px;">
+				</a>
 			</div>
 		</div>
 	</header>
@@ -799,97 +789,67 @@
 		</p>
 
 		
-		<!-- Timeline unificada con desplegables -->
+		<!-- Timeline horizontal fija -->
 		<div class="info-card">
 			<h3><i class="fas fa-clock"></i> Horario</h3>
 			<div class="timeline-container">
-				<div class="timeline-item-unified" onclick="toggleDetails(this)">
+				<div class="timeline-item-fixed">
 					<div class="timeline-dot"></div>
-					<div class="timeline-content-unified">
-						<div class="timeline-time-unified">16:30–17:00</div>
-						<div class="timeline-text-unified">Recepción</div>
-						<div class="timeline-duration-unified">30 min</div>
-						<div class="timeline-details" style="display: none;">
-							<p>Acreditación y recepción de participantes</p>
-						</div>
-					</div>
-					<div class="timeline-toggle">
-						<i class="fas fa-chevron-down"></i>
+					<div class="timeline-content-fixed">
+						<div class="timeline-time-fixed">16:30–17:00</div>
+						<div class="timeline-text-fixed">Recepción</div>
+						<div class="timeline-duration-fixed">30 min</div>
+						<div class="timeline-description-fixed">Acreditación y recepción de participantes</div>
 					</div>
 				</div>
 				
-				<div class="timeline-item-unified" onclick="toggleDetails(this)">
+				<div class="timeline-item-fixed">
 					<div class="timeline-dot"></div>
-					<div class="timeline-content-unified">
-						<div class="timeline-time-unified">17:00–17:30</div>
-						<div class="timeline-text-unified">Apertura & representación artística</div>
-						<div class="timeline-duration-unified">30 min</div>
-						<div class="timeline-details" style="display: none;">
-							<p>Instituto de Artes Escénicas</p>
-						</div>
-					</div>
-					<div class="timeline-toggle">
-						<i class="fas fa-chevron-down"></i>
+					<div class="timeline-content-fixed">
+						<div class="timeline-time-fixed">17:00–17:30</div>
+						<div class="timeline-text-fixed">Apertura & actuación</div>
+						<div class="timeline-duration-fixed">30 min</div>
+						<div class="timeline-description-fixed">Representación Instituto de Artes Escénicas</div>
 					</div>
 				</div>
 				
-				<div class="timeline-item-unified" onclick="toggleDetails(this)">
+				<div class="timeline-item-fixed">
 					<div class="timeline-dot"></div>
-					<div class="timeline-content-unified">
-						<div class="timeline-time-unified">17:30–18:15</div>
-						<div class="timeline-text-unified">1ª sesión</div>
-						<div class="timeline-duration-unified">45 min</div>
-						<div class="timeline-details" style="display: none;">
-							<p>Sesiones participativas con producto tangible</p>
-						</div>
-					</div>
-					<div class="timeline-toggle">
-						<i class="fas fa-chevron-down"></i>
+					<div class="timeline-content-fixed">
+						<div class="timeline-time-fixed">17:30–18:15</div>
+						<div class="timeline-text-fixed">1ª sesión</div>
+						<div class="timeline-duration-fixed">45 min</div>
+						<div class="timeline-description-fixed">Sesiones participativas · Ideas que impulsan</div>
 					</div>
 				</div>
 				
-				<div class="timeline-item-unified" onclick="toggleDetails(this)">
+				<div class="timeline-item-fixed">
 					<div class="timeline-dot"></div>
-					<div class="timeline-content-unified">
-						<div class="timeline-time-unified">18:15–18:30</div>
-						<div class="timeline-text-unified">Cambio de taller</div>
-						<div class="timeline-duration-unified">15 min</div>
-						<div class="timeline-details" style="display: none;">
-							<p>Microcharlas de 15' · Ideas que impulsan</p>
-						</div>
-					</div>
-					<div class="timeline-toggle">
-						<i class="fas fa-chevron-down"></i>
+					<div class="timeline-content-fixed">
+						<div class="timeline-time-fixed">18:15–18:30</div>
+						<div class="timeline-text-fixed">Cambio de taller</div>
+						<div class="timeline-duration-fixed">15 min</div>
+						<div class="timeline-description-fixed"></div>
 					</div>
 				</div>
 				
-				<div class="timeline-item-unified" onclick="toggleDetails(this)">
+				<div class="timeline-item-fixed">
 					<div class="timeline-dot"></div>
-					<div class="timeline-content-unified">
-						<div class="timeline-time-unified">18:30–19:15</div>
-						<div class="timeline-text-unified">2ª sesión</div>
-						<div class="timeline-duration-unified">45 min</div>
-						<div class="timeline-details" style="display: none;">
-							<p>Sesiones participativas con producto tangible</p>
-						</div>
-					</div>
-					<div class="timeline-toggle">
-						<i class="fas fa-chevron-down"></i>
+					<div class="timeline-content-fixed">
+						<div class="timeline-time-fixed">18:30–19:15</div>
+						<div class="timeline-text-fixed">2ª sesión</div>
+						<div class="timeline-duration-fixed">45 min</div>
+						<div class="timeline-description-fixed">Sesiones participativas · Ideas que impulsan</div>
 					</div>
 				</div>
 				
-				<div class="timeline-item-unified" onclick="toggleDetails(this)">
+				<div class="timeline-item-fixed">
 					<div class="timeline-dot"></div>
-					<div class="timeline-content-unified">
-						<div class="timeline-time-unified">19:15–20:00</div>
-						<div class="timeline-text-unified">Encuentro & vino español</div>
-						<div class="timeline-duration-unified">45 min</div>
-						<div class="timeline-details" style="display: none;">
-							<p>Networking y cierre del evento</p>
-						</div>
-					</div>
-					<div class="timeline-toggle">
-						<i class="fas fa-chevron-down"></i>
+					<div class="timeline-content-fixed">
+						<div class="timeline-time-fixed">19:15–20:00</div>
+						<div class="timeline-text-fixed">Cheese & Wine</div>
+						<div class="timeline-duration-fixed">45 min</div>
+						<div class="timeline-description-fixed">Networking y cierre del evento</div>
 					</div>
 				</div>
 			</div>
@@ -937,22 +897,6 @@
   </section>
   
   <script>
-    // Función para toggle de detalles en timeline
-    function toggleDetails(element) {
-      const details = element.querySelector('.timeline-details');
-      const toggle = element.querySelector('.timeline-toggle i');
-      
-      if (details.style.display === 'none' || details.style.display === '') {
-        details.style.display = 'block';
-        element.classList.add('expanded');
-        toggle.style.transform = 'rotate(180deg)';
-      } else {
-        details.style.display = 'none';
-        element.classList.remove('expanded');
-        toggle.style.transform = 'rotate(0deg)';
-      }
-    }
-    
     // Efectos interactivos adicionales
     document.addEventListener('DOMContentLoaded', function() {
       // Animación de entrada para elementos al hacer scroll
@@ -971,7 +915,7 @@
       }, observerOptions);
       
       // Observar elementos para animación
-      document.querySelectorAll('.info-card, .timeline-item-unified').forEach(el => {
+      document.querySelectorAll('.info-card, .timeline-item-fixed').forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -979,17 +923,13 @@
       });
       
       // Efecto hover mejorado para las tarjetas de timeline
-      document.querySelectorAll('.timeline-item-unified').forEach(item => {
+      document.querySelectorAll('.timeline-item-fixed').forEach(item => {
         item.addEventListener('mouseenter', function() {
-          if (!this.classList.contains('expanded')) {
-            this.style.transform = 'translateY(-4px) scale(1.02)';
-          }
+          this.style.transform = 'translateY(-4px) scale(1.02)';
         });
         
         item.addEventListener('mouseleave', function() {
-          if (!this.classList.contains('expanded')) {
-            this.style.transform = 'translateY(0) scale(1)';
-          }
+          this.style.transform = 'translateY(0) scale(1)';
         });
       });
     });

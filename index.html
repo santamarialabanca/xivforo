@@ -121,6 +121,22 @@
 		transform: translateY(-5px);
 	  }
 	  
+	  .banner-link {
+		text-decoration: none;
+		color: inherit;
+		display: block;
+		transition: transform 0.3s ease;
+	  }
+	  
+	  .banner-link:hover {
+		transform: scale(1.02);
+	  }
+	  
+	  .banner-link:hover img {
+		transform: translateY(-5px) scale(1.02);
+		box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+	  }
+	  
 	  .banner-info {
 		text-align: center;
 		padding: 20px;
@@ -979,7 +995,9 @@
 		<div class="header-content">
 			<!-- Solo la imagen del banner -->
 			<div class="banner-image">
-				<img src="banner 1600x400 (1).png" alt="HUMANIA - Desafío Educativo" style="background: white; padding: 10px; border-radius: 10px;">
+				<a href="index.html" class="banner-link">
+					<img src="banner 1600x400 (1).png" alt="HUMANIA - Desafío Educativo" style="background: white; padding: 10px; border-radius: 10px;">
+				</a>
 			</div>
 		</div>
 	</header>
@@ -1019,11 +1037,11 @@
 		<b>5 · noviembre · 2025</b> Miércoles
 		<span class="kpi-hint">Haz clic para añadir al calendario</span>
 	  </a>
-	  <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=XIV%20Foro%20de%20Innovación%20Educativa%20HUMANIA&dates=20251105T170000Z/20251105T200000Z&details=Encuentro%20abierto%20para%20docentes%2C%20investigadores%20y%20familias.%20Exploramos%20IA%2C%20bienestar%20emocional%2C%20metodologías%20innovadoras%20y%20valores%20en%20la%20era%20digital.&location=Colegio%20Santa%20María%20la%20Blanca%2C%20C.%20del%20Monasterio%20de%20Oseira%2C%2017B%2C%20Fuencarral-El%20Pardo%2C%20Madrid" target="_blank" rel="noopener" class="kpi interactive">
+	  <a href="programa.html" target="_blank" rel="noopener" class="kpi interactive">
 		<i class="fas fa-clock"></i>
 		<b> Recepción: 16:30</b>
 		<b> Duración: 17:00–20:00</b>
-		<span class="kpi-hint">Haz clic para añadir al calendario</span>
+		<span class="kpi-hint">Haz clic para ver el horario</span>
 	  </a>
 	  <a href="https://maps.google.com/maps?q=Colegio+Santa+María+la+Blanca,+C.+del+Monasterio+de+Oseira,+17B,+Fuencarral-El+Pardo,+Madrid" target="_blank" rel="noopener" class="kpi interactive">
 		<i class="fas fa-map-marker-alt"></i>

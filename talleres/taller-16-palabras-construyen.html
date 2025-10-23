@@ -84,6 +84,21 @@
             text-align: center;
         }
         
+        .header-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .header-link:hover {
+            transform: scale(1.02);
+        }
+        
+        .header-link:hover .header-content h1 {
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+        
         .header-content h1 {
             font-size: clamp(1.8rem, 4vw, 2.6rem);
             font-weight: 900;
@@ -384,10 +399,12 @@
 <body>
     <!-- Header Banner -->
     <header class="header-banner">
-        <div class="header-content">
-            <h1>Taller 16: Palabras que Construyen</h1>
-            <p class="subtitle">Herramientas para Transformar el Conflicto en Conexión</p>
-        </div>
+        <a href="../index.html" class="header-link">
+            <div class="header-content">
+                <h1>Taller 16: Palabras que Construyen</h1>
+                <p class="subtitle">Herramientas para Transformar el Conflicto en Conexión</p>
+            </div>
+        </a>
     </header>
     
     <div class="container">
