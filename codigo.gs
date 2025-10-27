@@ -7,27 +7,27 @@ const WORKSHOP_NAMES = {
   // 1ª FRANJA (17:30-18:15h)
   "1. Artes Escénicas para la Inclusión: Estrategias Creativas en el Aula Instituto Artes Escénicas": { 
     name: "Artes Escénicas para la Inclusión", 
-    capacity: 25 
+    capacity: 30 
   },
   "2. Matemáticas creativas en Educación Primaria Irene López, Cristina Bezón y Beatriz Hernández Santa María la Blanca": { 
     name: "Matemáticas creativas en Educación Primaria", 
-    capacity: 25 
+    capacity: 30 
   },
   "3. Matemáticas competenciales en Secundaria Manuel Llorens Santa María la Blanca": { 
     name: "Matemáticas competenciales en Secundaria", 
-    capacity: 25 
+    capacity: 30 
   },
   "4. AyudIA! – La Inteligencia Artificial como compañera de aprendizaje Equipo de Inteligencia Artificial Santa María la Blanca": { 
     name: "AyudIA! – La Inteligencia Artificial como compañera", 
-    capacity: 28
+    capacity: 30
   },
   "5. Innovación social: crea, actúa y cambia el mundo Luis Miguel Olivas Fundación Iruaritz Lezama": { 
     name: "Innovación social: crea, actúa y cambia el mundo", 
-    capacity: 25 
+    capacity: 30 
   },
   "6. Crecer sin alas prestadas Equipo de Acompañate Santa María la Blanca": { 
     name: "Crecer sin alas prestadas", 
-    capacity: 25 
+    capacity: 30 
   },
   "7. Claves para cultivar tu salud. Tu vida está en tus manos. Elisabeth Arrojo INMOA y Centro Nacional Prevención Cáncer": { 
     name: "Claves para cultivar tu salud", 
@@ -35,49 +35,49 @@ const WORKSHOP_NAMES = {
   },
   "8. Metacognición. Una necesidad Elías Domínguez Seminario Menor de Ourense": { 
     name: "Metacognición. Una necesidad", 
-    capacity: 25 
+    capacity: 30 
   },
   "9. Inspira Talks: La escuela de los sentidos A) Pequeños grandes viajes sensoriales Ana Posada Santa María la Blanca B) Cuerpo que juega, mente que aprende Lorena Gómez Santa María la Blanca": { 
     name: "La escuela de los sentidos", 
-    capacity: 25 
+    capacity: 30 
   },
   
   // 2ª FRANJA (18:30-19:15h)
   "10. GameLab inclusivo: del aula al juego Raquel Cuesta Santa María la Blanca": { 
     name: "GameLab inclusivo: del aula al juego", 
-    capacity: 26 
+    capacity: 31 
   },
   "11. Godly Play: «Jugando con Dios» Equipo Godly Play Santa María la Blanca": { 
     name: "Godly Play: \"Jugando con Dios\"", 
-    capacity: 25 
+    capacity: 30 
   },
   "12. Copilot Chat en el aula: cómo multiplicar el potencial docente con IA Felipe García Gaitero Universidad Europea": { 
     name: "Copilot Chat en el aula: cómo multiplicar el potencial docente", 
-    capacity: 25 
+    capacity: 30 
   },
   "13. IA para mentes que enseñan Antonio Julio López Universidad Rey Juan Carlos": { 
     name: "IA para mentes que enseñan", 
-    capacity: 25 
+    capacity: 30 
   },
   "14. Más allá del marcador: deporte, valores y emociones Jose Javier Illana illanactiva": { 
     name: "Más allá del marcador: deporte, valores y emociones", 
-    capacity: 25 
+    capacity: 30 
   },
   "15. Networking y Comunicación Estratégica en la Escuela y en la Vida Lucila Ballarino ConexIA": { 
     name: "Networking y Comunicación Estratégica", 
-    capacity: 25 
+    capacity: 30 
   },
   "16. Palabras que construyen: herramientas para transformar el conflicto en conexión con los adolescentes Ana López e Iranzu Arellano Santa María la Blanca": { 
     name: "Palabras que construyen: herramientas para transformar el conflicto", 
-    capacity: 25 
+    capacity: 30 
   },
   "17. Inspira Talks: Humanizar la educación A) Transformación Digital e Innovación Educativa | IA Aplicada a la Educación Antonio Segura Marrero UNIR B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": { 
     name: "Humanizar la educación", 
-    capacity: 25 
+    capacity: 30 
   },
   "18. Inspira Talks: La emoción de acompañar A) Conciencia emocional: el punto de partida para educar Sara Hernández Cano Educandoatulado B) Cuidar, acompañar y educar Colegio San Ignacio de Loyola": { 
     name: "La emoción de acompañar", 
-    capacity: 25 
+    capacity: 30 
   }
 };
 
@@ -772,9 +772,9 @@ function testFormSubmission() {
   // Simular datos de prueba
   const testData = [
     new Date(), // Marca temporal
-    "Juan", // Nombre
-    "Pérez", // Apellidos
-    "test@example.com", // Email
+    "R", // Nombre
+    "Prueba", // Apellidos
+    "raqelcb@gmail.com", // Email
     "12345678Z", // DNI
     "Docente", // Me inscribo como
     "Colegio de Prueba", // Institución
