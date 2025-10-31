@@ -55,7 +55,7 @@ const WORKSHOP_NAMES = {
     name: "Copilot Chat en el aula: cómo multiplicar el potencial docente", 
     capacity: 30 
   },
-  "13. IA para mentes que enseñan Antonio Julio López Universidad Rey Juan Carlos": { 
+  "13. IA para mentes que enseñan Alicia Carrascosa y Raúl Bernabé Santa María la Blanca": { 
     name: "IA para mentes que enseñan", 
     capacity: 30 
   },
@@ -71,7 +71,7 @@ const WORKSHOP_NAMES = {
     name: "Palabras que construyen: herramientas para transformar el conflicto", 
     capacity: 30 
   },
-  "17. Inspira Talks: Humanizar la educación A) Transformación Digital e Innovación Educativa | IA Aplicada a la Educación Antonio Segura Marrero UNIR B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": { 
+  "17. Inspira Talks: Humanizar la educación A) Liderazgo y cultura de innovación educativa Luis Miguel Olivas Fundación Iruaritz Lezama B) Desconectar para reconectar Laura Corral Iniciativa pacto de familia Montecarmelo": { 
     name: "Humanizar la educación", 
     capacity: 30 
   },
